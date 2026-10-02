@@ -1,4 +1,4 @@
-const CustomerModel = require('../models/CustomerModel').default;
+const CustomerModel = require('../models/CustomerModel');
 const jwt = require('jsonwebtoken');
 const blackListTokenModel = require('../models/blackListTokenModel');
 const ShopOwner = require('../models/ShopOwnerModel');
@@ -42,6 +42,7 @@ module.exports.authCustomer = async (req, res, next) => {
         }
 
         req.customer = customer;
+        req.user = customer;
 
         // Continue to the next middleware/controller
         next();

@@ -8,8 +8,11 @@ if (fs.existsSync(envFilePath)) {
 }
 
 const app = require('./app');
+const salesRoutes = require('./routes/salesRoutes');
 const connectToDb = require('./db/db');
 const port = 3000;
+
+app.use('/sales', salesRoutes);
 
 async function startServer() {
     await connectToDb();

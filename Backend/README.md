@@ -1,6 +1,6 @@
 # NearBuy Backend
 
-NearBuy is a hyperlocal digital commerce platform connecting customers with nearby kirana and grocery shops and their existing inventory. Shops will manage their own products, prices, units, and stock; NearBuy does not maintain centralized inventory. This backend provides the foundation for authentication and shops, with products, orders, delivery partners, payments, and real-time tracking to be added as development progresses.
+NearBuy is a hyperlocal grocery platform that connects customers to nearby kirana shops. Each shop manages its own products, pricing, units, and stock. This backend focuses on the shop-owner and customer flow required for local grocery ordering and sales management.
 
 ## Technology Stack
 
@@ -10,165 +10,301 @@ NearBuy is a hyperlocal digital commerce platform connecting customers with near
 - Express.js
 - MongoDB
 - Mongoose
-- JSON Web Tokens (JWT)
+- JWT for authentication
 - bcrypt for password hashing
-- Postman for manual API testing
+- HTTP-only cookies for session handling
+- Postman for API testing
 
-### Planned Integrations
+### Planned or Future Integrations
 
-- Google Maps API for maps and location services
+- Google Maps / location services
 - Socket.IO for real-time updates
 - Razorpay for payments
-- ImageKit for image storage and delivery
+- Captain / delivery fulfillment service
+- Live order tracking
+- Frontend dashboard and charts
 
-These integrations are not implemented yet and are not current backend dependencies.
+These are not part of the current backend implementation.
 
-## Architecture
+## Current Architecture
 
-NearBuy is designed around three roles:
+The backend now supports the following core roles and flows:
 
-1. **Customer**: discovers nearby shops and, in future modules, browses products and places orders.
-2. **Shop Owner**: authenticates and manages their account and associated shop. Shop-owner authentication and shop registration are implemented.
-3. **Captain / Delivery Partner**: will fulfill delivery orders and share delivery progress when those modules are developed.
+1. Customer
+   - register/login/logout
+   - browse shop products
+   - manage cart
+   - place orders
+   - view order history
+   - cancel eligible orders
 
-The current development focus is the Customer, ShopOwner, and Shop Mongoose models, plus ShopOwner registration, login, logout, and profile handling.
+2. Shop Owner
+   - register/login/logout
+   - manage their shop
+   - create and manage shop products
+   - update stock
+   - view sales analytics for their own shop
+
+3. Shop
+   - linked to a specific shop owner
+   - created during registration
+   - used for product and sales ownership
 
 ## Project Structure
-
-Current files are shown as implemented. Items marked **planned** do not exist yet.
 
 ```text
 Backend/
 ├── Controllers/
 │   ├── CustomerController.js
+│   ├── cartController.js
+│   ├── orderController.js
+│   ├── salesController.js
 │   ├── shopController.js
-│   └── shopOwnerController.js
+│   ├── shopOwnerController.js
+│   └── shopProductController.js
 ├── Middlewares/
 │   └── authMiddleware.js
 ├── db/
 │   └── db.js
 ├── models/
+│   ├── blackListTokenModel.js
+│   ├── Cart.js
 │   ├── CustomerModel.js
-│   ├── ShopOwnerModel.js
+│   ├── Order.js
 │   ├── ShopModel.js
+│   ├── ShopOwnerModel.js
+│   ├── ShopProduct.js
 │   └── blackListTokenModel.js
 ├── routes/
+│   ├── cartRoutes.js
 │   ├── CustomerRoutes.js
-│   └── shopOwnerRoutes.js
+│   ├── orderRoutes.js
+│   ├── salesRoutes.js
+│   ├── shopOwnerRoutes.js
+│   ├── shopProductRoutes.js
+│   └── salesRoutes.js
 ├── services/
 │   └── CustomerService.js
-├── .env                         # local configuration; do not commit secrets
+├── .env
 ├── app.js
-├── server.js
 ├── package.json
-└── README.md
+├── README.md
+├── server.js
+└── node_modules/
 ```
 
-**Planned, not present:** a Shop management routes file, a Postman collection, product/order/captain modules, and the planned external integrations.
+## Implemented Features
 
-> The repository currently has a few casing/style inconsistencies in directory and model filenames. On case-sensitive systems, import paths must match the actual filename casing.
+### 1. Authentication
 
-## Models Developed
+#### Customer authentication
+- Customer registration
+- Customer login
+- Customer logout
+- JWT-based auth
+- HTTP-only cookies
+- Customer profile retrieval
 
-### Customer
+#### Shop owner authentication
+- Shop owner registration
+- Shop owner login
+- Shop owner logout
+- JWT-based auth
+- cookie-based session management
+- owner-scoped profile lookup
 
-The Customer authentication model is implemented in `models/CustomerModel.js` with:
+### 2. Shop Module
 
-- `name`, `email`, `phone`, and `password`
-- `isVerified` and `isActive`
-- Mongoose `createdAt` and `updatedAt` timestamps
-
-Passwords are hashed with bcrypt in a Mongoose save hook. `comparePassword()` supports password verification, and `toJSON()` removes the password from serialized responses. The password field is also excluded from ordinary query results unless explicitly selected.
-
-### ShopOwner
-
-The ShopOwner authentication/account model is implemented in `models/ShopOwnerModel.js` with:
-
-- `name`, `email`, `phone`, and `password`
-- `isVerified`, `isActive`, and `accountStatus`
-- Mongoose timestamps
-
-`accountStatus` supports `pending`, `approved`, `suspended`, and `rejected`. Passwords are bcrypt-hashed, `comparePassword()` is available, and JSON serialization excludes the password.
-
-ShopOwner stores authentication and account information only. It does not contain products, inventory, orders, shop location, or Captain information.
-
-### Shop
-
-The separate Shop model is implemented in `models/ShopModel.js` with:
-
-- `owner`: required ObjectId reference to `ShopOwner`, with an index
-- `shopName`, `address`, `contact`
-- `location.latitude` and `location.longitude`
-- `status`: `active`, `inactive`, or `suspended` (defaults to `active`)
-- Mongoose timestamps
-
-The relationship is:
+- Shop owner owns a shop
+- Shop stores shop name, address, contact, location, and status
+- Shop is created automatically during shop owner registration
+- The relationship is:
 
 ```text
-ShopOwner
-    │
-    │ owner reference
-    ▼
-Shop
+ShopOwner -> Shop
 ```
 
-The registration flow creates one Shop for a ShopOwner in the MVP. The `owner` index is not unique, so a one-to-one relationship is not enforced by a unique database constraint yet.
+### 3. Product Module
 
-## ShopOwner Registration
+The backend includes a separate `ShopProduct` model to avoid a global product catalog.
 
-Registration is implemented by the ShopOwner controller. Example request body (example values only):
+Each product belongs to a specific shop and contains:
 
-```json
-{
-  "name": "Rahul Kumar",
-  "email": "rahul@example.com",
-  "phone": "9876543210",
-  "password": "ExampleOnly@123",
-  "shopName": "Rahul Kirana Store",
-  "address": "Abids, Hyderabad",
-  "latitude": 17.385,
-  "longitude": 78.4867,
-  "contact": "9876543210"
-}
+- `shop`
+- `name`
+- `description`
+- `category`
+- `brand`
+- `image`
+- `price`
+- `unit`
+- `quantity`
+- `lowStockThreshold`
+- `isAvailable`
+- timestamps
+
+Shop owners can:
+- create products
+- view their shop's products
+- update product details
+- delete products
+- update product stock
+
+Customers can:
+- browse products by shop
+- view specific product details
+
+### 4. Cart Module
+
+The backend includes a customer cart model that holds products from only one shop at a time.
+
+Cart functionality includes:
+- get current cart
+- add product to cart
+- update item quantity
+- remove item from cart
+- clear cart
+
+Rules:
+- customers cannot mix products from different shops in one cart
+- quantity is checked against available stock
+- cart item prices are revalidated from the product database during checkout
+
+### 5. Order Module
+
+The order system stores a snapshot of products so historical orders remain consistent even if the product is edited later.
+
+Order fields include:
+- customer
+- shop
+- items
+- totalAmount
+- fulfillmentType
+- orderStatus
+- deliveryAddress
+- timestamps
+
+Supported fulfillment types:
+- `pickup`
+- `delivery`
+
+Supported order statuses:
+- `placed`
+- `accepted`
+- `preparing`
+- `ready`
+- `picked_up`
+- `out_for_delivery`
+- `completed`
+- `cancelled`
+
+Order functionality includes:
+- create order from cart
+- confirm order and reduce stock
+- clear the cart after successful order
+- view customer order history
+- view specific order details
+- cancel eligible orders
+- restore stock on cancellation when allowed
+
+### 6. Sales Analytics Module
+
+The new recent feature added is the Shop Owner sales dashboard analytics module.
+
+The backend now exposes:
+
+- `GET /sales/summary`
+- `GET /sales/statistics`
+- `GET /sales/trends`
+- `GET /sales/top-products`
+
+These are calculated from the existing `Order` collection using MongoDB aggregation pipelines.
+
+#### Sales Summary
+Returns:
+- `totalSales`
+- `totalOrders`
+- `completedOrders`
+- `cancelledOrders`
+- `averageOrderValue`
+
+#### Sales Statistics
+Returns:
+- `totalOrders`
+- `completedOrders`
+- `cancelledOrders`
+- `totalSales`
+- `averageOrderValue`
+- `totalItemsSold`
+- `pickupOrders`
+- `deliveryOrders`
+
+#### Sales Trends
+Supports:
+- `daily`
+- `weekly`
+- `monthly`
+
+Example:
+
+```text
+GET /sales/trends?period=daily
+GET /sales/trends?period=weekly
+GET /sales/trends?period=monthly
+GET /sales/trends?period=daily&startDate=2026-09-01&endDate=2026-09-30
 ```
 
-The flow validates required owner and shop fields, checks for duplicate email and phone, creates the ShopOwner, and then creates the Shop using the new owner's ID. Coordinates are stored under `location`. If Shop creation fails, the controller attempts to delete the newly created ShopOwner so an incomplete registration is not left behind. The response excludes the password. Registration does not issue a JWT.
+Returns chart-friendly data: date or period, total sales, and order count.
 
-## ShopOwner Authentication
+#### Top Selling Products
+Returns products sorted by quantity sold.
 
-### Login
+Example response fields:
+- `product`
+- `name`
+- `unit`
+- `quantitySold`
+- `revenue`
 
-Login accepts email and password, finds the ShopOwner, and verifies the password with `comparePassword()`. It rejects inactive, suspended, and rejected accounts, signs a JWT containing the ShopOwner ID, and stores it in an HTTP-only cookie. Safe ShopOwner information is returned without the password.
+This module is restricted to the authenticated shop owner and is computed from the owner’s own shop only.
 
-The current login logic permits an active account whose status is `pending`; approval is not currently required to log in.
+## Important Security Rules
 
-### Logout
+The implementation follows these safety rules:
 
-Logout clears the authentication cookie. When a token is available, it is also added to the token blacklist.
+- Shop owners must use `req.user._id` to identify themselves
+- Shop owners can only access their own shop data
+- Customers can only view their own orders and carts
+- No arbitrary `shopId` or `customerId` from request bodies is trusted for authorization
+- Product prices and totals are validated server-side
+- Stock is reduced only after successful order creation
+- Database transaction/session logic is used for order creation and stock updates
 
-### Profile
+## CommonJS Standard
 
-The protected profile handler returns the authenticated ShopOwner and their associated Shop. The Shop lookup is scoped to the authenticated owner:
+The project follows CommonJS throughout:
 
 ```js
-Shop.findOne({ owner: req.user._id })
+const Model = require("../models/Model");
+
+module.exports = {
+  functionName,
+};
 ```
 
-The ShopOwner password is excluded from the response.
+No ES module syntax is used.
 
-## Routes
+## Routes Summary
 
-The route module defines these relative routes:
+### Customer auth
+```text
+POST /User/register
+POST /User/login
+GET  /User/profile
+POST /User/logout
+```
 
-| Method | Route | Purpose | Authentication |
-| --- | --- | --- | --- |
-| `POST` | `/register` | Create a ShopOwner and associated Shop | Public |
-| `POST` | `/login` | Authenticate a ShopOwner | Public |
-| `POST` | `/logout` | Clear/revoke the current session token | Protected |
-| `GET` | `/me` | Get the authenticated ShopOwner and Shop | Protected |
-
-**Current mount:** `app.js` mounts `shopOwnerRoutes` at `/shop-owner`, so the URLs currently served are:
-
+### Shop owner auth
 ```text
 POST /shop-owner/register
 POST /shop-owner/login
@@ -176,88 +312,83 @@ POST /shop-owner/logout
 GET  /shop-owner/me
 ```
 
-The intended mount `/shop-owner/auth` has not been applied in the current `app.js`. After that mount is configured, the URLs will instead be:
-
+### Products
 ```text
-POST /shop-owner/auth/register
-POST /shop-owner/auth/login
-POST /shop-owner/auth/logout
-GET  /shop-owner/auth/me
+POST   /shop-products
+GET    /shop-products/shop/:shopId
+GET    /shop-products/:productId
+PUT    /shop-products/:productId
+DELETE /shop-products/:productId
+PATCH  /shop-products/:productId/stock
 ```
 
-The current Shop management controller contains owner-scoped read/update/status handlers, but no Shop routes file is mounted yet; those handlers are not exposed as HTTP endpoints.
-
-## Postman Testing
-
-The authentication endpoints can be tested manually with Postman. There is no checked-in Postman collection at this stage. Postman is a testing tool, not a backend runtime dependency.
-
-Suggested sequence:
-
+### Cart
 ```text
-Register
-   ↓
-Approve account during development if required
-   ↓
-Login
-   ↓
-JWT cookie
-   ↓
-Get Profile
-   ↓
-Logout
+GET    /cart
+POST   /cart
+PUT    /cart/:productId
+DELETE /cart/:productId
+DELETE /cart/clear
 ```
 
-The current login implementation permits active `pending` accounts, so approval is not required by the code at this time. Postman or the client must retain the cookie from login to call protected routes.
+### Orders
+```text
+POST   /orders
+GET    /orders
+GET    /orders/:orderId
+PUT    /orders/:orderId/cancel
+```
 
-Useful cases to exercise:
+### Sales analytics
+```text
+GET /sales/summary
+GET /sales/statistics
+GET /sales/trends
+GET /sales/top-products
+```
 
-- Successful registration
-- Duplicate email
-- Duplicate phone
-- Successful login
-- Invalid password
-- Inactive account
-- Suspended or rejected account
-- Retrieve authenticated profile
-- Logout and subsequent use of the revoked token
-- Missing required registration or login fields
+## Configuration
 
-Use local example values only. Do not place production credentials or real secrets in requests, screenshots, or this README.
-
-## Configuration and Running
-
-`server.js` loads `Backend/.env` when present and connects to MongoDB before starting the HTTP server. Configure the following keys locally:
+Create a local `.env` file with values like:
 
 ```dotenv
 MONGODB_URI=mongodb://127.0.0.1:27017/nearbuy
-JWT_SECRET=replace-with-a-local-development-secret
+JWT_SECRET=your_local_jwt_secret
+NODE_ENV=development
 ```
 
-Do not commit real credentials. The project currently uses Node's built-in environment-file loader rather than the `dotenv` package.
-
-Install dependencies and start the backend from this directory:
+## Run the Project
 
 ```bash
 npm install
 node server.js
 ```
 
-## Security Practices
-
-Implemented security measures include:
-
-- bcrypt password hashing in Mongoose save middleware
-- JWT authentication for ShopOwner sessions
-- HTTP-only authentication cookie
-- Password exclusion from serialized model/API responses
-- Environment variables for the MongoDB URI and JWT secret
-- Authentication middleware on protected ShopOwner routes
-- Owner-scoped Shop lookup and update operations in the Shop controller
-- Token blacklist support for logout
-
-The cookie currently uses `sameSite: 'strict'` and enables `secure` in production. Deployments should review `secure`, `sameSite`, CORS, and HTTPS settings for their hosting and frontend origins.
-
 ## Development Status
+
+This backend has reached the following implemented maturity:
+
+- customer auth
+- shop owner auth
+- shop model
+- shop products
+- customer cart
+- order lifecycle
+- sales dashboard analytics
+
+The following are not implemented yet and remain planned for later phases:
+
+- Captain / delivery partner module
+- live tracking
+- maps services
+- payment integration
+- socket.io real-time updates
+- frontend dashboard UI
+
+## Verification
+
+The backend module structure and recent sales module were checked for syntax/loading validity using Node require validation, and no errors were reported in the current project workspace.
+
 
 ### Implemented
 

@@ -4,12 +4,17 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const customerRoutes = require("./routes/CustomerRoutes");
 const shopOwnerRoutes = require("./routes/shopOwnerRoutes");
+const shopProductRoutes = require("./routes/shopProductRoutes");
+const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use("/User", customerRoutes);
 app.use("/shop-owner", shopOwnerRoutes);
-
+app.use("/", shopProductRoutes);
+app.use("/", cartRoutes);
+app.use("/", orderRoutes);
 
 module.exports = app;
