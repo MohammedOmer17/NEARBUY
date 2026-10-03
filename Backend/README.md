@@ -1,136 +1,321 @@
 # NearBuy Backend
 
-NearBuy is a hyperlocal grocery platform that connects customers to nearby kirana shops. Each shop manages its own products, pricing, units, and stock. This backend focuses on the shop-owner and customer flow required for local grocery ordering and sales management.
+NearBuy is a hyperlocal digital commerce backend built for connecting customers with nearby local and kirana shops. The backend exposes REST APIs for customer authentication, shop management, cart and order workflows, captain delivery operations, payment status tracking, notifications, maps-based route lookups, and admin monitoring.
 
-## Technology Stack
+This project is implemented using Node.js, Express.js, MongoDB, and Mongoose with CommonJS modules (`require` / `module.exports`) throughout the codebase.
 
-### In Use
+## 1. About the Project
 
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- JWT for authentication
-- bcrypt for password hashing
-- HTTP-only cookies for session handling
-- Postman for API testing
+NearBuy is designed around a local commerce workflow where:
 
-### Planned or Future Integrations
+- Customers can register, log in, manage their profile, and track their location.
+- Shop owners can register, manage shop information, configure payment details, and list products.
+- Customers can browse products, add items to a cart, and place orders.
+- Shop owners can accept orders and update their order status.
+- Captains can accept delivery workflows, update availability, and complete deliveries.
+- Admins can manage platform-wide entities and view aggregate dashboard metrics.
 
-- Google Maps / location services
-- Socket.IO for real-time updates
-- Razorpay for payments
-- Captain / delivery fulfillment service
-- Live order tracking
-- Frontend dashboard and charts
+The backend acts as the API layer between the frontend, MongoDB, and business logic that governs customer, shop, captain, and admin flows.
 
-These are not part of the current backend implementation.
+## 2. Current Development Status
 
-## Current Architecture
+The following backend features are currently implemented in the codebase:
 
-The backend now supports the following core roles and flows:
+### Customer features
+- Customer registration
+- Customer login
+- Customer logout
+- JWT-based authentication
+- Token verification middleware
+- Token blacklist/logout handling
+- Customer profile retrieval
+- Customer location fetch and update
 
-1. Customer
-   - register/login/logout
-   - browse shop products
-   - manage cart
-   - place orders
-   - view order history
-   - cancel eligible orders
+### Shop Owner features
+- Shop owner registration
+- Shop owner login
+- Shop owner logout
+- Shop owner profile retrieval
+- Shop owner payment configuration
+- Shop creation and shop ownership tracking
+- Product creation, listing, update, deletion, and stock updates
+- Shop-level sales analytics
 
-2. Shop Owner
-   - register/login/logout
-   - manage their shop
-   - create and manage shop products
-   - update stock
-   - view sales analytics for their own shop
+### Cart and Order features
+- Cart creation and management
+- Add/update/remove cart items
+- Cart clearing
+- Order creation from cart
+- Customer order listing and order lookup
+- Order cancellation
+- Shop order approval and status updates
+- Payment confirmation flows for UPI and COD
+- Payment tracking for customer and shop flows
 
-3. Shop
-   - linked to a specific shop owner
-   - created during registration
-   - used for product and sales ownership
+### Captain features
+- Captain registration
+- Captain login
+- Captain logout
+- Captain profile management
+- Captain password update
+- Captain availability updates
+- Captain location tracking
+- Current delivery retrieval
+- Delivery arrival, pickup, start, and completion steps
+- Delivery payment collection
+- Delivery history
 
-## Project Structure
+### Maps, notifications, and assessment
+- Google Maps route/service endpoints for captain and shop movement
+- Notification creation and retrieval for multiple user roles
+- Notification read/unread handling
+- Assessment endpoint for shop recommendations
+
+### Admin features
+- Admin registration
+- Admin login
+- Admin logout
+- Admin profile retrieval
+- Customer management
+- Shop owner management
+- Shop management
+- Captain management
+- Order management
+- Dashboard statistics
+- Payment statistics and sales stats
+
+## 3. Tech Stack
+
+| Technology | Purpose |
+| --- | --- |
+| Node.js | JavaScript runtime for the backend server |
+| Express.js | Web framework for routing, middleware, and API handling |
+| MongoDB | Primary database for persistent application data |
+| Mongoose | MongoDB schema modeling and validation |
+| JWT | Authentication and authorization tokens |
+| bcrypt | Password hashing |
+| cookie-parser | Reading and setting HTTP-only cookies |
+| CORS | Cross-origin resource sharing support |
+| Socket.IO | Real-time communication support |
+| Google Maps API | Route and location-based lookup support |
+| Express Validator | Request validation for registration and login flows |
+
+## 4. Backend Folder Structure
 
 ```text
 Backend/
+├── .env
+├── .gitignore
+├── app.js
+├── server.js
+├── package.json
+├── package-lock.json
+├── README.md
 ├── Controllers/
-│   ├── CustomerController.js
+│   ├── adminController.js
+│   ├── assessmentController.js
+│   ├── captainController.js
 │   ├── cartController.js
+│   ├── CustomerController.js
+│   ├── googleMapsController.js
+│   ├── notificationController.js
 │   ├── orderController.js
+│   ├── paymentController.js
 │   ├── salesController.js
 │   ├── shopController.js
 │   ├── shopOwnerController.js
 │   └── shopProductController.js
-├── Middlewares/
-│   └── authMiddleware.js
 ├── db/
 │   └── db.js
+├── Middlewares/
+│   ├── adminMiddleware.js
+│   └── authMiddleware.js
 ├── models/
+│   ├── AdminModel.js
 │   ├── blackListTokenModel.js
+│   ├── CaptainModel.js
 │   ├── Cart.js
 │   ├── CustomerModel.js
+│   ├── Notification.js
 │   ├── Order.js
 │   ├── ShopModel.js
 │   ├── ShopOwnerModel.js
-│   ├── ShopProduct.js
-│   └── blackListTokenModel.js
+│   └── ShopProduct.js
 ├── routes/
+│   ├── adminRoutes.js
+│   ├── assessmentRoutes.js
+│   ├── captainRoutes.js
 │   ├── cartRoutes.js
 │   ├── CustomerRoutes.js
+│   ├── googleMapsRoutes.js
+│   ├── notificationRoutes.js
 │   ├── orderRoutes.js
 │   ├── salesRoutes.js
 │   ├── shopOwnerRoutes.js
-│   ├── shopProductRoutes.js
-│   └── salesRoutes.js
+│   └── shopProductRoutes.js
 ├── services/
-│   └── CustomerService.js
-├── .env
-├── app.js
-├── package.json
-├── README.md
-├── server.js
+│   ├── adminService.js
+│   ├── assessmentService.js
+│   ├── CustomerService.js
+│   ├── googleMapsService.js
+│   ├── notificationService.js
+│   ├── paymentService.js
+│   └── socketService.js
 └── node_modules/
 ```
 
-## Implemented Features
+## 5. Folder & File Explanation
 
-### 1. Authentication
+### `Controllers/`
+The controller layer handles HTTP request logic and dispatches business operations to models and services.
 
-#### Customer authentication
-- Customer registration
-- Customer login
-- Customer logout
-- JWT-based auth
-- HTTP-only cookies
-- Customer profile retrieval
+Important controller files:
+- `CustomerController.js` - customer authentication and profile handling
+- `shopOwnerController.js` - shop owner authentication and profile flow
+- `shopProductController.js` - product management operations
+- `cartController.js` - cart operations
+- `orderController.js` - order creation, listing, cancellation, and status updates
+- `paymentController.js` - customer/shop/captain payment-related flows
+- `captainController.js` - captain lifecycle and delivery management
+- `googleMapsController.js` - route and map-based delivery lookup endpoints
+- `notificationController.js` - in-app notifications
+- `salesController.js` - shop sales analytics
+- `adminController.js` - admin operations and dashboard metrics
+- `assessmentController.js` - shop assessment logic
 
-#### Shop owner authentication
-- Shop owner registration
-- Shop owner login
-- Shop owner logout
-- JWT-based auth
-- cookie-based session management
-- owner-scoped profile lookup
+### `models/`
+This folder contains MongoDB/Mongoose models used for persistence and validation.
 
-### 2. Shop Module
+Important models:
+- `CustomerModel.js` - customer profile and authentication data
+- `ShopOwnerModel.js` - shop owner profile and status information
+- `ShopModel.js` - shop record with owner relation, location, and payment details
+- `ShopProduct.js` - product catalog attached to a shop
+- `Cart.js` - cart and cart item data for customers
+- `Order.js` - order snapshot, payment, fulfillment, and delivery state
+- `CaptainModel.js` - captain identity, location, availability, and delivery data
+- `Notification.js` - notification records for customer, owner, and captain roles
+- `AdminModel.js` - admin authentication and role model
+- `blackListTokenModel.js` - invalidated JWT storage for logout support
 
-- Shop owner owns a shop
-- Shop stores shop name, address, contact, location, and status
-- Shop is created automatically during shop owner registration
-- The relationship is:
+### `routes/`
+The route layer defines the public API surface for the backend.
 
-```text
-ShopOwner -> Shop
-```
+Important route files:
+- `CustomerRoutes.js` - customer auth and location endpoints
+- `shopOwnerRoutes.js` - shop owner authentication and payment endpoints
+- `shopProductRoutes.js` - product endpoints
+- `cartRoutes.js` - cart endpoints
+- `orderRoutes.js` - customer/shop order flow endpoints
+- `captainRoutes.js` - captain profile and delivery endpoints
+- `googleMapsRoutes.js` - maps route endpoints
+- `notificationRoutes.js` - notification endpoints
+- `salesRoutes.js` - shop owner sales analytics endpoints
+- `adminRoutes.js` - admin management endpoints
+- `assessmentRoutes.js` - assessment endpoint
 
-### 3. Product Module
+### `Middlewares/`
+Middleware contains authentication and authorization checks.
 
-The backend includes a separate `ShopProduct` model to avoid a global product catalog.
+- `authMiddleware.js` contains `authCustomer`, `authShopOwner`, `authCaptain`, and `authAnyUser` logic
+- `adminMiddleware.js` contains admin-only authentication logic
 
-Each product belongs to a specific shop and contains:
+### `db/`
+- `db.js` handles MongoDB connection using `MONGODB_URI`
 
-- `shop`
+### `services/`
+The service layer contains reusable logic for cross-cutting features.
+
+Important service files:
+- `CustomerService.js` - customer business logic
+- `assessmentService.js` - shop assessment logic
+- `googleMapsService.js` - map/distance integration logic
+- `notificationService.js` - centralized notification logic
+- `paymentService.js` - payment validation and status updates
+- `socketService.js` - socket-based real-time communication support
+- `adminService.js` - dashboard and aggregate query logic
+
+### Root files
+- `app.js` - Express app setup, middleware registration, route mounting
+- `server.js` - database connection, HTTP server startup, socket initialization
+- `package.json` - project dependencies and package metadata
+- `.env` - environment configuration file used locally
+- `.gitignore` - ignores `.env` and `node_modules/`
+
+## 6. Database Architecture
+
+The backend uses MongoDB with Mongoose schemas to model application data.
+
+### Customer
+Model: `Customer`
+
+Purpose:
+- Stores customer authentication and profile data
+
+Important fields:
+- `name`
+- `email`
+- `phone`
+- `password` (hashed)
+- `location.latitude`
+- `location.longitude`
+- `locationUpdatedAt`
+- `isVerified`
+- `isActive`
+- timestamps
+
+Relationships:
+- A customer creates orders and carts
+
+### Shop Owner
+Model: `ShopOwner`
+
+Purpose:
+- Stores shop owner credentials, status, and profile information
+
+Important fields:
+- `name`
+- `email`
+- `phone`
+- `password`
+- `isVerified`
+- `isActive`
+- `accountStatus` (`pending`, `approved`, `suspended`, `rejected`)
+- timestamps
+
+Relationships:
+- One shop owner can own one shop through the `owner` field inside `Shop`
+
+### Shop
+Model: `Shop`
+
+Purpose:
+- Stores the shop profile and owner relationship
+
+Important fields:
+- `owner` (ObjectId reference to `ShopOwner`)
+- `shopName`
+- `address`
+- `location.latitude`
+- `location.longitude`
+- `contact`
+- `paymentDetails.upiId`
+- `paymentDetails.qrCode`
+- `status` (`active`, `inactive`, `suspended`)
+- timestamps
+
+Relationships:
+- Each shop belongs to a single shop owner
+- Products and orders refer to a shop
+
+### Shop Product
+Model: `ShopProduct`
+
+Purpose:
+- Stores products for a specific shop
+
+Important fields:
+- `shop` (ObjectId reference to `Shop`)
 - `name`
 - `description`
 - `category`
@@ -143,209 +328,470 @@ Each product belongs to a specific shop and contains:
 - `isAvailable`
 - timestamps
 
-Shop owners can:
-- create products
-- view their shop's products
-- update product details
-- delete products
-- update product stock
-
-Customers can:
-- browse products by shop
-- view specific product details
-
-### 4. Cart Module
-
-The backend includes a customer cart model that holds products from only one shop at a time.
-
-Cart functionality includes:
-- get current cart
-- add product to cart
-- update item quantity
-- remove item from cart
-- clear cart
-
-Rules:
-- customers cannot mix products from different shops in one cart
-- quantity is checked against available stock
-- cart item prices are revalidated from the product database during checkout
-
-### 5. Order Module
-
-The order system stores a snapshot of products so historical orders remain consistent even if the product is edited later.
-
-Order fields include:
-- customer
-- shop
-- items
-- totalAmount
-- fulfillmentType
-- orderStatus
-- deliveryAddress
-- timestamps
-
-Supported fulfillment types:
-- `pickup`
-- `delivery`
-
-Supported order statuses:
-- `placed`
-- `accepted`
-- `preparing`
-- `ready`
-- `picked_up`
-- `out_for_delivery`
-- `completed`
-- `cancelled`
-
-Order functionality includes:
-- create order from cart
-- confirm order and reduce stock
-- clear the cart after successful order
-- view customer order history
-- view specific order details
-- cancel eligible orders
-- restore stock on cancellation when allowed
-
-### 6. Sales Analytics Module
-
-The new recent feature added is the Shop Owner sales dashboard analytics module.
-
-The backend now exposes:
-
-- `GET /sales/summary`
-- `GET /sales/statistics`
-- `GET /sales/trends`
-- `GET /sales/top-products`
-
-These are calculated from the existing `Order` collection using MongoDB aggregation pipelines.
-
-#### Sales Summary
-Returns:
-- `totalSales`
-- `totalOrders`
-- `completedOrders`
-- `cancelledOrders`
-- `averageOrderValue`
-
-#### Sales Statistics
-Returns:
-- `totalOrders`
-- `completedOrders`
-- `cancelledOrders`
-- `totalSales`
-- `averageOrderValue`
-- `totalItemsSold`
-- `pickupOrders`
-- `deliveryOrders`
-
-#### Sales Trends
-Supports:
-- `daily`
-- `weekly`
-- `monthly`
-
-Example:
-
-```text
-GET /sales/trends?period=daily
-GET /sales/trends?period=weekly
-GET /sales/trends?period=monthly
-GET /sales/trends?period=daily&startDate=2026-09-01&endDate=2026-09-30
-```
-
-Returns chart-friendly data: date or period, total sales, and order count.
-
-#### Top Selling Products
-Returns products sorted by quantity sold.
-
-Example response fields:
-- `product`
-- `name`
-- `unit`
-- `quantitySold`
-- `revenue`
-
-This module is restricted to the authenticated shop owner and is computed from the owner’s own shop only.
-
-## Important Security Rules
-
-The implementation follows these safety rules:
-
-- Shop owners must use `req.user._id` to identify themselves
-- Shop owners can only access their own shop data
-- Customers can only view their own orders and carts
-- No arbitrary `shopId` or `customerId` from request bodies is trusted for authorization
-- Product prices and totals are validated server-side
-- Stock is reduced only after successful order creation
-- Database transaction/session logic is used for order creation and stock updates
-
-## CommonJS Standard
-
-The project follows CommonJS throughout:
-
-```js
-const Model = require("../models/Model");
-
-module.exports = {
-  functionName,
-};
-```
-
-No ES module syntax is used.
-
-## Routes Summary
-
-### Customer auth
-```text
-POST /User/register
-POST /User/login
-GET  /User/profile
-POST /User/logout
-```
-
-### Shop owner auth
-```text
-POST /shop-owner/register
-POST /shop-owner/login
-POST /shop-owner/logout
-GET  /shop-owner/me
-```
-
-### Products
-```text
-POST   /shop-products
-GET    /shop-products/shop/:shopId
-GET    /shop-products/:productId
-PUT    /shop-products/:productId
-DELETE /shop-products/:productId
-PATCH  /shop-products/:productId/stock
-```
+Relationships:
+- Products belong to a specific shop and are used in cart and order snapshots
 
 ### Cart
-```text
-GET    /cart
-POST   /cart
-PUT    /cart/:productId
-DELETE /cart/:productId
-DELETE /cart/clear
+Model: `Cart`
+
+Purpose:
+- Stores customer cart data before checkout
+
+Important fields:
+- `customer` (ObjectId reference to `Customer`)
+- `shop` (ObjectId reference to `Shop`)
+- `items[]`
+- timestamps
+
+Relationships:
+- A cart is linked to exactly one customer and usually one shop
+
+### Order
+Model: `Order`
+
+Purpose:
+- Stores order snapshots for customer purchase history and lifecycle tracking
+
+Important fields:
+- `customer` (ObjectId reference to `Customer`)
+- `shop` (ObjectId reference to `Shop`)
+- `captain` (ObjectId reference to `Captain`, optional)
+- `items[]`
+- `totalAmount`
+- `fulfillmentType` (`pickup` or `delivery`)
+- `orderStatus` (`placed`, `accepted`, `preparing`, `ready`, `picked_up`, `out_for_delivery`, `completed`, `cancelled`)
+- `deliveryAddress`
+- `deliveryLocation`
+- `payment.method` (`shop_upi`, `cod`)
+- `payment.status` (`pending`, `customer_marked_paid`, `paid`)
+- `delivery.*` timestamps
+- timestamps
+
+Relationships:
+- Orders are tied to a customer, shop, and optionally a captain
+
+### Captain
+Model: `Captain`
+
+Purpose:
+- Stores delivery partner information
+
+Important fields:
+- `name`
+- `email`
+- `phone`
+- `password`
+- `vehicle`
+- `location.latitude`
+- `location.longitude`
+- `locationUpdatedAt`
+- `isVerified`
+- `isActive`
+- `availabilityStatus` (`offline`, `available`, `busy`)
+- `accountStatus` (`pending`, `approved`, `rejected`, `suspended`)
+- timestamps
+
+Relationships:
+- Captains are assigned to orders for deliveries
+
+### Notification
+Model: `Notification`
+
+Purpose:
+- Stores in-app notifications for different user roles
+
+Important fields:
+- `recipient` (ObjectId reference using polymorphic role)
+- `recipientRole` (`customer`, `shopOwner`, `captain`)
+- `type`
+- `title`
+- `message`
+- `relatedEntity`
+- `isRead`
+- `readAt`
+- timestamps
+
+### Admin
+Model: `Admin`
+
+Purpose:
+- Stores platform administrator credentials and profile data
+
+Important fields:
+- `name`
+- `email`
+- `password`
+- `role` (`admin`)
+- `isActive`
+- `lastLoginAt`
+- timestamps
+
+### Token blacklist
+Model: `BlacklistToken`
+
+Purpose:
+- Stores JWT tokens that have been invalidated after logout
+
+Important fields:
+- `token`
+- `createdAt`
+
+## 7. Authentication & Authorization
+
+The project uses JWT-based authentication with cookie support and a blacklist mechanism for logout.
+
+### Flow
+1. A user registers via the relevant route.
+2. The backend validates request input.
+3. Passwords are hashed using `bcrypt` before saving.
+4. The user logs in with email and password.
+5. The server verifies the password and generates a JWT token.
+6. The token is returned to the client and optionally stored in an HTTP-only cookie.
+7. Protected routes use middleware to verify the JWT and token blacklist state.
+8. The matching user record is loaded and attached to `req.user` or `req.customer` / `req.captain`.
+9. Requests continue only if the token is valid and the user is authorized.
+10. Logout adds the token to the blacklist and clears the cookie.
+
+### Middleware used
+- `authCustomer` - validates customer JWT
+- `authShopOwner` - validates shop owner JWT
+- `authCaptain` - validates captain JWT
+- `authAnyUser` - validates a user and identifies whether they are a customer, shop owner, or captain
+- `adminAuth` - validates admin JWT and checks admin status
+
+### Role handling
+The project currently implements role-specific middleware rather than a single global role system. The following flows are present in code:
+- Customer routes protected by `authCustomer`
+- Shop owner routes protected by `authShopOwner`
+- Captain routes protected by `authCaptain`
+- Notifications use `authAnyUser`
+- Admin routes use `adminAuth`
+
+## 8. API Endpoints
+
+The project does not use an `/api` prefix. Routes are mounted directly on the base URLs shown below.
+
+### Customer APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/User/register` | Register a customer | No |
+| POST | `/User/login` | Login a customer | No |
+| GET | `/User/profile` | Get current customer profile | Yes |
+| POST | `/User/logout` | Logout current customer | Yes |
+| GET | `/User/location` | Get customer location | Yes |
+| PATCH | `/User/location` | Update customer location | Yes |
+
+### Shop Owner APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/shop-owner/register` | Register a shop owner | No |
+| POST | `/shop-owner/login` | Login a shop owner | No |
+| GET | `/shop-owner/me` | Get shop owner profile | Yes |
+| POST | `/shop-owner/logout` | Logout shop owner | Yes |
+| GET | `/shop-owner/payment` | Get shop owner payment info | Yes |
+| PATCH | `/shop-owner/payment` | Update payment details | Yes |
+
+### Shop / Product APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/shop-products` | Create a product | Yes (shop owner) |
+| GET | `/shop-products/shop/:shopId` | Get products by shop | No |
+| GET | `/shop-products/:productId` | Get one product | No |
+| PUT | `/shop-products/:productId` | Update product | Yes (shop owner) |
+| DELETE | `/shop-products/:productId` | Delete product | Yes (shop owner) |
+| PATCH | `/shop-products/:productId/stock` | Update product stock | Yes (shop owner) |
+
+### Cart APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| GET | `/cart` | Get current cart | Yes |
+| POST | `/cart` | Add item to cart | Yes |
+| PUT | `/cart/:productId` | Update cart item quantity | Yes |
+| DELETE | `/cart/:productId` | Remove item from cart | Yes |
+| DELETE | `/cart/clear` | Clear cart | Yes |
+
+### Order APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/orders` | Create an order | Yes (customer) |
+| GET | `/orders` | Get customer orders | Yes (customer) |
+| GET | `/orders/:orderId` | Get one customer order | Yes (customer) |
+| PUT | `/orders/:orderId/cancel` | Cancel order | Yes (customer) |
+| PATCH | `/orders/:orderId/payment/mark-paid` | Mark order as paid | Yes (customer) |
+| GET | `/shop/:shopId/payment` | Get shop payment info for customer flow | Yes (customer) |
+| GET | `/shop/orders` | Get shop order list | Yes (shop owner) |
+| GET | `/shop/orders/:orderId` | Get one shop order | Yes (shop owner) |
+| PUT | `/shop/orders/:orderId/accept` | Accept order | Yes (shop owner) |
+| PUT | `/shop/orders/:orderId/status` | Update order status | Yes (shop owner) |
+| PATCH | `/shop/orders/:orderId/payment/confirm` | Confirm payment | Yes (shop owner) |
+| PATCH | `/shop/orders/:orderId/payment/confirm-cod` | Confirm COD payment | Yes (shop owner) |
+
+### Captain APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/captain/register` | Register a captain | No |
+| POST | `/captain/login` | Login a captain | No |
+| POST | `/captain/logout` | Logout a captain | Yes |
+| GET | `/captain/profile` | Get captain profile | Yes |
+| PUT | `/captain/profile` | Update captain profile | Yes |
+| PUT | `/captain/change-password` | Change password | Yes |
+| PATCH | `/captain/availability` | Update availability | Yes |
+| GET | `/captain/location` | Get current captain location | Yes |
+| PATCH | `/captain/location` | Update current captain location | Yes |
+| GET | `/captain/deliveries/current` | Get current assigned delivery | Yes |
+| PATCH | `/captain/deliveries/:orderId/arrived` | Confirm arrival at shop | Yes |
+| PATCH | `/captain/deliveries/:orderId/pickup` | Confirm pickup | Yes |
+| PATCH | `/captain/deliveries/:orderId/start` | Start delivery | Yes |
+| PATCH | `/captain/deliveries/:orderId/payment/collect` | Collect delivery payment | Yes |
+| PATCH | `/captain/deliveries/:orderId/complete` | Complete delivery | Yes |
+| GET | `/captain/deliveries/history` | Get captain delivery history | Yes |
+
+### Maps APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| GET | `/maps/captain-to-shop/:shopId` | Get captain-to-shop route information | Yes (captain) |
+| GET | `/maps/captain-to-customer/:orderId` | Get captain-to-customer route information | Yes (captain) |
+| GET | `/maps/shop-to-customer/:orderId` | Get shop-to-customer route information | Yes (shop owner) |
+
+### Notification APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| GET | `/notifications/` | Get user notifications | Yes |
+| GET | `/notifications/unread-count` | Get unread notification count | Yes |
+| PATCH | `/notifications/:notificationId/read` | Mark one notification as read | Yes |
+| PATCH | `/notifications/read-all` | Mark all notifications read | Yes |
+| DELETE | `/notifications/:notificationId` | Delete one notification | Yes |
+| DELETE | `/notifications/` | Delete all notifications for user | Yes |
+
+### Assessment API
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/assessment/shops` | Assess nearby shops for customer flow | Yes (customer) |
+
+### Admin APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| POST | `/admin/register` | Register admin | No |
+| POST | `/admin/login` | Login admin | No |
+| POST | `/admin/logout` | Logout admin | Yes |
+| GET | `/admin/me` | Get admin profile | Yes |
+| GET | `/admin/customers` | List customers | Yes |
+| GET | `/admin/customers/:customerId` | Get one customer | Yes |
+| PATCH | `/admin/customers/:customerId/activate` | Activate customer | Yes |
+| PATCH | `/admin/customers/:customerId/deactivate` | Deactivate customer | Yes |
+| GET | `/admin/shop-owners` | List shop owners | Yes |
+| GET | `/admin/shop-owners/:ownerId` | Get one shop owner | Yes |
+| PATCH | `/admin/shop-owners/:ownerId/approve` | Approve shop owner | Yes |
+| PATCH | `/admin/shop-owners/:ownerId/reject` | Reject shop owner | Yes |
+| PATCH | `/admin/shop-owners/:ownerId/suspend` | Suspend shop owner | Yes |
+| GET | `/admin/shops` | List shops | Yes |
+| GET | `/admin/shops/:shopId` | Get one shop | Yes |
+| PATCH | `/admin/shops/:shopId/activate` | Activate shop | Yes |
+| PATCH | `/admin/shops/:shopId/deactivate` | Deactivate shop | Yes |
+| PATCH | `/admin/shops/:shopId/suspend` | Suspend shop | Yes |
+| GET | `/admin/captains` | List captains | Yes |
+| GET | `/admin/captains/:captainId` | Get one captain | Yes |
+| PATCH | `/admin/captains/:captainId/approve` | Approve captain | Yes |
+| PATCH | `/admin/captains/:captainId/reject` | Reject captain | Yes |
+| PATCH | `/admin/captains/:captainId/suspend` | Suspend captain | Yes |
+| GET | `/admin/orders` | List orders | Yes |
+| GET | `/admin/orders/:orderId` | Get one order | Yes |
+| GET | `/admin/dashboard` | Get admin dashboard stats | Yes |
+| GET | `/admin/stats/orders` | Get order statistics | Yes |
+| GET | `/admin/stats/sales` | Get sales statistics | Yes |
+| GET | `/admin/stats/payments` | Get payment statistics | Yes |
+
+### Sales APIs
+
+| Method | Endpoint | Purpose | Auth |
+| --- | --- | --- | --- |
+| GET | `/sales/summary` | Summary sales metrics | Yes (shop owner) |
+| GET | `/sales/statistics` | Sales statistics | Yes (shop owner) |
+| GET | `/sales/trends` | Sales trend series | Yes (shop owner) |
+| GET | `/sales/top-products` | Top-selling products | Yes (shop owner) |
+
+## 9. Environment Variables
+
+This project expects a local `.env` file in `Backend/`.
+
+```env
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+GOOGLE_MAP_API=your_google_maps_api_key
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
 ```
 
-### Orders
-```text
-POST   /orders
-GET    /orders
-GET    /orders/:orderId
-PUT    /orders/:orderId/cancel
+Notes:
+- `MONGODB_URI` is required for database connection.
+- `JWT_SECRET` is required for JWT signing and verification.
+- `GOOGLE_MAP_API` is used by the Google Maps integration.
+- `FRONTEND_URL` is used in Socket.IO configuration.
+- `PORT` is not currently configured in `server.js`; the app listens on port `3000` by default.
+
+> Never commit `.env` or expose secret keys in GitHub.
+
+## 10. Installation & Setup
+
+### 1. Clone the repository
+
+```bash
+git clone <repository-url>
+cd Backend
 ```
 
-### Sales analytics
-```text
-GET /sales/summary
-GET /sales/statistics
-GET /sales/trends
-GET /sales/top-products
+### 2. Install dependencies
+
+```bash
+npm install
 ```
+
+### 3. Configure environment variables
+Create a `.env` file in the `Backend` folder and add the required keys.
+
+### 4. Start the backend
+There are no custom npm scripts defined in the current `package.json`, so the backend is started directly with Node.js:
+
+```bash
+node server.js
+```
+
+The app will start on port `3000` unless changed in the code.
+
+## 11. API Testing
+
+The backend can be tested using Postman or any REST client.
+
+### Recommended testing flow
+1. Register a customer or shop owner
+2. Log in to receive the JWT token and cookie
+3. Access a protected route
+4. Test role-specific endpoints
+5. Log out and check that the token is rejected on subsequent requests
+
+### Example order for testing
+1. `/User/register`
+2. `/User/login`
+3. `/User/profile`
+4. `/shop-products/shop/:shopId`
+5. `/cart`
+6. `/orders`
+7. `/shop/orders` for shop owners
+8. `/captain/register` and `/captain/login` for delivery flow
+9. `/notifications`
+10. `/admin/login` for admin flow
+
+## 12. Error Handling
+
+The backend currently uses standard Express and Mongoose error handling patterns.
+
+Common patterns observed in code:
+- `401 Unauthorized` for invalid or missing JWT tokens
+- `403 Forbidden` for inactive or unauthorized account states
+- `400 Bad Request` for invalid request input or validation failures
+- `404 Not Found` when a resource does not exist
+- `409 Conflict` for duplicate admin email registrations
+- `500 Internal Server Error` for unexpected server-side failures
+
+Validation is handled using Express Validator in some routes, and Mongoose schema validation is used for model-level validation.
+
+## 13. Security
+
+The project currently implements the following security practices:
+
+- Password hashing using `bcrypt`
+- JWT-based authentication
+- HTTP-only cookies for session handling
+- Blacklist token storage for logout invalidation
+- Middleware-based route protection
+- Environment variable configuration for secrets
+- Validation checks on registration and login inputs
+
+## 14. Current Architecture Flow
+
+```text
+Client
+   ↓
+Route
+   ↓
+Middleware
+   ↓
+Controller
+   ↓
+Service / Model
+   ↓
+MongoDB
+   ↓
+Response
+```
+
+This matches the current backend structure and request lifecycle observed in the codebase.
+
+## 15. Development Roadmap
+
+### Completed
+- Customer authentication and profile flow
+- Shop owner authentication and shop ownership flow
+- Product management
+- Cart management
+- Order creation and lifecycle management
+- Payment confirmation flows for UPI and COD
+- Captain delivery flow
+- Maps integration
+- Notification service
+- Sales analytics
+- Admin dashboard and management APIs
+
+### In Progress
+- Real-time delivery/driver tracking integration is partially present through Socket.IO and related service files
+- Some operational flows remain dependent on frontend usage and real deployment setup
+
+### Planned
+- Advanced financial analytics
+- More detailed inventory monitoring and low-stock alerts
+- Full customer product discovery experience
+- Integration with external payment gateways
+- More advanced delivery optimization and route intelligence
+- Expanded admin reporting and business dashboards
+
+## 16. Future Scope
+
+The current project is a strong MVP backend for hyperlocal commerce. Future scope can include:
+
+- Payment analytics and settlement summaries
+- Profit and expense calculations
+- Tax/GST calculations
+- Financial forecasting
+- Inventory forecasting
+- Multi-vendor commission tools
+- Subscription or wallet features
+- Advanced order reporting
+
+These are future modules and should not be confused with the current backend implementation.
+
+## 17. Contribution / Development Guidelines
+
+- Keep the codebase aligned with CommonJS module usage
+- Prefer updating existing modules instead of rewriting working routes or controllers
+- Keep routing, controllers, and services separate
+- Validate authentication and authorization at middleware boundaries
+- Use consistent naming patterns and model references
+- Keep database logic in models and reusable logic in services
+- Protect environment variables and do not expose secrets in GitHub
+
+## 18. License
+
+License information will be added later.
 
 ## Configuration
 

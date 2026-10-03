@@ -48,6 +48,11 @@ const orderSchema = new mongoose.Schema(
       ref: "Shop",
       required: [true, "Shop is required"],
     },
+    captain: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Captain",
+      default: null,
+    },
     items: [orderItemSchema],
     totalAmount: {
       type: Number,
@@ -71,6 +76,43 @@ const orderSchema = new mongoose.Schema(
       required: function () {
         return this.fulfillmentType === "delivery";
       },
+    },
+    deliveryLocation: {
+      latitude: {
+        type: Number,
+        default: null,
+      },
+      longitude: {
+        type: Number,
+        default: null,
+      },
+    },
+    payment: {
+      method: {
+        type: String,
+        enum: ["shop_upi", "cod"],
+        required: [true, "Payment method is required"],
+      },
+      status: {
+        type: String,
+        enum: ["pending", "customer_marked_paid", "paid"],
+        default: "pending",
+      },
+      customerMarkedPaidAt: {
+        type: Date,
+        default: null,
+      },
+      paidAt: {
+        type: Date,
+        default: null,
+      },
+    },
+    delivery: {
+      assignedAt: { type: Date, default: null },
+      arrivedAt: { type: Date, default: null },
+      pickedUpAt: { type: Date, default: null },
+      startedAt: { type: Date, default: null },
+      completedAt: { type: Date, default: null },
     },
   },
   { timestamps: true }

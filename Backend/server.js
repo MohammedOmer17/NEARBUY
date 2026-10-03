@@ -10,6 +10,7 @@ if (fs.existsSync(envFilePath)) {
 const app = require('./app');
 const salesRoutes = require('./routes/salesRoutes');
 const connectToDb = require('./db/db');
+const { initializeSocketService } = require('./services/socketService');
 const port = 3000;
 
 app.use('/sales', salesRoutes);
@@ -18,6 +19,8 @@ async function startServer() {
     await connectToDb();
 
     const server = http.createServer(app);
+    initializeSocketService(server);
+
     server.listen(port, () => {
         console.log(`Server is running on port ${port}`);
     });

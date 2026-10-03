@@ -30,6 +30,18 @@ const shopSchema = new mongoose.Schema(
       },
     },
     contact: requiredTrimmedString("Contact"),
+    paymentDetails: {
+      upiId: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+      qrCode: {
+        type: String,
+        trim: true,
+        default: null,
+      },
+    },
     status: {
       type: String,
       enum: ["active", "inactive", "suspended"],

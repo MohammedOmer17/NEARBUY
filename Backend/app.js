@@ -7,6 +7,11 @@ const shopOwnerRoutes = require("./routes/shopOwnerRoutes");
 const shopProductRoutes = require("./routes/shopProductRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const captainRoutes = require("./routes/captainRoutes");
+const googleMapsRoutes = require("./routes/googleMapsRoutes");
+const assessmentRoutes = require("./routes/assessmentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 app.use(cors());
 app.use(cookieParser());
@@ -16,5 +21,10 @@ app.use("/shop-owner", shopOwnerRoutes);
 app.use("/", shopProductRoutes);
 app.use("/", cartRoutes);
 app.use("/", orderRoutes);
+app.use("/captain", captainRoutes);
+app.use("/maps", googleMapsRoutes);
+app.use("/assessment", assessmentRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/admin", adminRoutes);
 
 module.exports = app;

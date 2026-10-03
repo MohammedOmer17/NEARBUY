@@ -19,5 +19,7 @@ router.post('/login', [
 
 router.get('/profile', authMiddleware.authCustomer, customerController.getCustomerProfile);
 router.post('/logout', authMiddleware.authCustomer, customerController.logoutCustomer);
+router.get('/location', authMiddleware.authCustomer, customerController.getCustomerLocation);
+router.patch('/location', authMiddleware.authCustomer, customerController.updateCustomerLocation);
 
 module.exports = router;

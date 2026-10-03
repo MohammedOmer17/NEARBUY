@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^\+?[\d\s().-]+$/;
 const bcryptHashPattern = /^\$2[abxy]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 
-const customerSchema = new mongoose.Schema(
+const captainSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -32,10 +33,16 @@ const customerSchema = new mongoose.Schema(
       required: [true, "Phone is required"],
       unique: true,
       trim: true,
-      validate: {
-        validator: (value) => value.trim().length > 0,
-        message: "Phone cannot be empty",
-      },
+      validate: [
+        {
+          validator: (value) => value.trim().length > 0,
+          message: "Phone cannot be empty",
+        },
+        {
+          validator: (value) => phonePattern.test(value) && /\d/.test(value),
+          message: "Please provide a valid phone number",
+        },
+      ],
     },
     password: {
       type: String,
@@ -44,6 +51,23 @@ const customerSchema = new mongoose.Schema(
       validate: {
         validator: (value) => value.trim().length > 0,
         message: "Password cannot be empty",
+      },
+    },
+    vehicle: {
+      type: {
+        type: String,
+        enum: ["bike", "scooter", "car", "other"],
+        default: "other",
+      },
+      model: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      number: {
+        type: String,
+        trim: true,
+        default: "",
       },
     },
     location: {
@@ -68,11 +92,21 @@ const customerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    availabilityStatus: {
+      type: String,
+      enum: ["offline", "available", "busy"],
+      default: "offline",
+    },
+    accountStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "suspended"],
+      default: "pending",
+    },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-customerSchema.pre("save", async function () {
+captainSchema.pre("save", async function () {
   if (!this.isModified("password") || bcryptHashPattern.test(this.password)) {
     return;
   }
@@ -80,14 +114,16 @@ customerSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, 12);
 });
 
-customerSchema.methods.comparePassword = function (password) {
-  return bcrypt.compare(password, this.password);
+captainSchema.methods.comparePassword = function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-customerSchema.methods.toJSON = function () {
-  const customer = this.toObject();
-  delete customer.password;
-  return customer;
+captainSchema.methods.toJSON = function () {
+  const captain = this.toObject();
+  delete captain.password;
+  return captain;
 };
 
-module.exports = mongoose.model("Customer", customerSchema);
+const CaptainModel = mongoose.model("Captain", captainSchema);
+
+module.exports = CaptainModel;
