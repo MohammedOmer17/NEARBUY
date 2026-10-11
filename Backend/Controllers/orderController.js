@@ -9,6 +9,15 @@ const paymentService = require("../services/paymentService");
 const validFulfillmentTypes = ["pickup", "delivery"];
 const validOrderStatuses = ["placed", "accepted", "preparing", "ready", "picked_up", "out_for_delivery", "completed", "cancelled"];
 const cancellableStatuses = ["placed"];
+const stopPickupTrackingStatuses = ["picked_up", "completed", "cancelled"];
+
+const clearPickupTracking = (order) => {
+  order.pickupTracking = {
+    shared: false,
+    location: { latitude: null, longitude: null },
+    updatedAt: null,
+  };
+};
 
 const getAuthenticatedShop = async (req, res) => {
   const ownerId = req.user?._id;
@@ -208,7 +217,9 @@ const createOrder = async (req, res) => {
 
 const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ customer: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ customer: req.user._id })
+      .sort({ createdAt: -1 })
+      .populate("shop", "shopName address location");
     return res.status(200).json({ orders });
   } catch (error) {
     console.error("Fetch my orders failed:", error);
@@ -224,7 +235,8 @@ const getOrderById = async (req, res) => {
   }
 
   try {
-    const order = await Order.findOne({ _id: orderId, customer: req.user._id }).populate("shop", "shopName address contact status");
+    const order = await Order.findOne({ _id: orderId, customer: req.user._id })
+      .populate("shop", "shopName address contact status location");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -275,6 +287,7 @@ const cancelOrder = async (req, res) => {
     }
 
     order.orderStatus = "cancelled";
+    clearPickupTracking(order);
     await order.save({ session });
     await session.commitTransaction();
 
@@ -325,7 +338,8 @@ const getShopOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
-      .populate("customer", "name phone");
+      .populate("customer", "name phone")
+      .populate("shop", "shopName address location");
 
     return res.status(200).json({ success: true, orders });
   } catch (error) {
@@ -358,6 +372,7 @@ const getShopOrderById = async (req, res) => {
     }
 
     await order.populate("customer", "name phone");
+    await order.populate("shop", "shopName address location");
 
     return res.status(200).json({ success: true, order });
   } catch (error) {
@@ -465,6 +480,9 @@ const updateShopOrderStatus = async (req, res) => {
     }
 
     order.orderStatus = status;
+    if (order.fulfillmentType === "pickup" && stopPickupTrackingStatuses.includes(status)) {
+      clearPickupTracking(order);
+    }
     await order.save();
 
     try {

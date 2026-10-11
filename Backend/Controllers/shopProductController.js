@@ -3,6 +3,7 @@ const Shop = require("../models/ShopModel");
 const ShopProduct = require("../models/ShopProduct");
 
 const requiredProductFields = ["name", "category", "price", "unit", "quantity"];
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getOwnerShop = async (ownerId) => {
   return Shop.findOne({ owner: ownerId });
@@ -108,6 +109,40 @@ const getShopProducts = async (req, res) => {
   } catch (error) {
     console.error("Fetch shop products failed:", error);
     return res.status(500).json({ message: "Unable to retrieve products" });
+  }
+};
+
+const getAvailableProducts = async (req, res) => {
+  const { category, search } = req.query;
+
+  try {
+    const activeShops = await Shop.find({ status: "active" }).select("_id").lean();
+    const filter = {
+      shop: { $in: activeShops.map(({ _id }) => _id) },
+      isAvailable: true,
+      quantity: { $gt: 0 },
+    };
+
+    if (typeof category === "string" && category.trim()) {
+      filter.category = new RegExp(escapeRegex(category.trim()), "i");
+    }
+
+    if (typeof search === "string" && search.trim()) {
+      const searchPattern = new RegExp(escapeRegex(search.trim()), "i");
+      filter.$or = [
+        { name: searchPattern },
+        { category: searchPattern },
+        { brand: searchPattern },
+      ];
+    }
+
+    const products = await ShopProduct.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("shop", "shopName address contact status");
+    return res.status(200).json({ products });
+  } catch (error) {
+    console.error("Fetch available products failed:", error);
+    return res.status(500).json({ message: "Unable to retrieve available products" });
   }
 };
 
@@ -288,6 +323,7 @@ const updateProductStock = async (req, res) => {
 module.exports = {
   createProduct,
   getShopProducts,
+  getAvailableProducts,
   getProductById,
   updateProduct,
   deleteProduct,

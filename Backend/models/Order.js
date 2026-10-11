@@ -87,6 +87,26 @@ const orderSchema = new mongoose.Schema(
         default: null,
       },
     },
+    pickupTracking: {
+      shared: {
+        type: Boolean,
+        default: false,
+      },
+      location: {
+        latitude: {
+          type: Number,
+          default: null,
+        },
+        longitude: {
+          type: Number,
+          default: null,
+        },
+      },
+      updatedAt: {
+        type: Date,
+        default: null,
+      },
+    },
     payment: {
       method: {
         type: String,

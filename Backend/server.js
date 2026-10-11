@@ -11,7 +11,7 @@ const app = require('./app');
 const salesRoutes = require('./routes/salesRoutes');
 const connectToDb = require('./db/db');
 const { initializeSocketService } = require('./services/socketService');
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use('/sales', salesRoutes);
 

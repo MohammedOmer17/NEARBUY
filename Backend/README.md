@@ -498,6 +498,7 @@ The project does not use an `/api` prefix. Routes are mounted directly on the ba
 | Method | Endpoint | Purpose | Auth |
 | --- | --- | --- | --- |
 | POST | `/shop-products` | Create a product | Yes (shop owner) |
+| GET | `/shop-products` | List available products from active shops | No |
 | GET | `/shop-products/shop/:shopId` | Get products by shop | No |
 | GET | `/shop-products/:productId` | Get one product | No |
 | PUT | `/shop-products/:productId` | Update product | Yes (shop owner) |
@@ -559,6 +560,16 @@ The project does not use an `/api` prefix. Routes are mounted directly on the ba
 | GET | `/maps/captain-to-shop/:shopId` | Get captain-to-shop route information | Yes (captain) |
 | GET | `/maps/captain-to-customer/:orderId` | Get captain-to-customer route information | Yes (captain) |
 | GET | `/maps/shop-to-customer/:orderId` | Get shop-to-customer route information | Yes (shop owner) |
+
+Pickup walking directions are opened in Google Maps from the customer’s device.
+Pickup location tracking uses the authenticated Socket.IO connection: customer
+and shop owner clients join with `join_pickup_tracking` and an `orderId`; the
+customer starts sharing by sending `pickup_location_update` only after granting
+browser location permission. The shop owner receives
+`pickup_customer_location_updated` only for that order. The customer can stop
+sharing with `pickup_location_stop`; sharing also ends when the customer
+disconnects or the order is picked up, completed, or cancelled. Only the
+order’s customer and owning shop account can join its pickup tracking room.
 
 ### Notification APIs
 
@@ -628,7 +639,8 @@ This project expects a local `.env` file in `Backend/`.
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 GOOGLE_MAP_API=your_google_maps_api_key
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5173
+PORT=3000
 NODE_ENV=development
 ```
 
@@ -636,8 +648,8 @@ Notes:
 - `MONGODB_URI` is required for database connection.
 - `JWT_SECRET` is required for JWT signing and verification.
 - `GOOGLE_MAP_API` is used by the Google Maps integration.
-- `FRONTEND_URL` is used in Socket.IO configuration.
-- `PORT` is not currently configured in `server.js`; the app listens on port `3000` by default.
+- `FRONTEND_URL` is the allowed browser origin for credentialed API and Socket.IO requests.
+- `PORT` configures the backend port and defaults to `3000`.
 
 > Never commit `.env` or expose secret keys in GitHub.
 
@@ -657,16 +669,16 @@ npm install
 ```
 
 ### 3. Configure environment variables
-Create a `.env` file in the `Backend` folder and add the required keys.
+Create a `.env` file in the `Backend` folder and add the required keys. For local development, use `FRONTEND_URL=http://localhost:5173` and `PORT=3000`.
 
 ### 4. Start the backend
-There are no custom npm scripts defined in the current `package.json`, so the backend is started directly with Node.js:
+Start the backend directly with Node.js:
 
 ```bash
 node server.js
 ```
 
-The app will start on port `3000` unless changed in the code.
+The app listens on port `3000` by default. In a separate terminal, start the frontend from `Frontend/` with `npm install` and `npm run dev`; Vite forwards `/api` and `/socket.io` traffic to the backend.
 
 ## 11. API Testing
 
@@ -809,6 +821,19 @@ NODE_ENV=development
 npm install
 node server.js
 ```
+
+To create three repeatable demo shop-owner accounts and sample products in the
+MongoDB database configured by `MONGODB_URI`, run this from `Backend/`:
+
+```bash
+npm run seed:test-data
+```
+
+The command refuses to run when `NODE_ENV=production`. Demo logins use
+`asha.owner@nearbuy.test`, `ravi.owner@nearbuy.test`, and
+`meera.owner@nearbuy.test`, all with password `NearBuyDemo!2026`. Running the
+seed again resets those demo accounts' passwords and adds only products that
+are not already present; it does not overwrite existing shop or product data.
 
 ## Development Status
 
