@@ -9,6 +9,7 @@ const Order = require("../models/Order");
 const blackListTokenModel = require("../models/blackListTokenModel");
 const notificationService = require("../services/notificationService");
 const adminService = require("../services/adminService");
+const { setAuthCookie, clearAuthCookie } = require("../Middlewares/authSecurity");
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -142,11 +143,7 @@ const loginAdmin = async (req, res) => {
     admin.lastLoginAt = new Date();
     await admin.save();
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    setAuthCookie(res, token);
 
     return res.status(200).json({
       success: true,
@@ -167,11 +164,7 @@ const logoutAdmin = async (req, res) => {
       await blackListTokenModel.create({ token });
     }
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    clearAuthCookie(res);
 
     return res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {

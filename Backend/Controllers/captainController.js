@@ -5,6 +5,7 @@ const Order = require("../models/Order");
 const blackListTokenModel = require("../models/blackListTokenModel");
 const notificationService = require("../services/notificationService");
 const paymentService = require("../services/paymentService");
+const { setAuthCookie, clearAuthCookie } = require("../Middlewares/authSecurity");
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+?[\d\s().-]+$/;
@@ -161,11 +162,7 @@ const loginCaptain = async (req, res) => {
       expiresIn: "1d",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    setAuthCookie(res, token);
 
     return res.status(200).json({
       success: true,
@@ -186,11 +183,7 @@ const logoutCaptain = async (req, res) => {
       await blackListTokenModel.create({ token }).catch(() => {});
     }
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    clearAuthCookie(res);
 
     return res.status(200).json({ success: true, message: "Captain logged out successfully" });
   } catch (error) {
@@ -303,11 +296,7 @@ const changeCaptainPassword = async (req, res) => {
     const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
     if (token) {
       await blackListTokenModel.create({ token }).catch(() => {});
-      res.clearCookie("token", {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-      });
+      clearAuthCookie(res);
     }
 
     return res.status(200).json({

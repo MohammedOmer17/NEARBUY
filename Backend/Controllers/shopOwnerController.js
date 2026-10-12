@@ -2,6 +2,7 @@ const ShopOwner = require('../models/ShopOwnerModel');
 const Shop = require('../models/ShopModel');
 const BlacklistToken = require('../models/blackListTokenModel');
 const jwt = require('jsonwebtoken');
+const { setAuthCookie, clearAuthCookie } = require('../Middlewares/authSecurity');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -142,11 +143,7 @@ const loginShopOwner = async (req, res) => {
             expiresIn: '1d',
         });
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-        });
+        setAuthCookie(res, token);
 
         return res.status(200).json({
             message: 'Login successful',
@@ -166,11 +163,7 @@ const logoutShopOwner = async (req, res) => {
             await BlacklistToken.create({ token });
         }
 
-        res.clearCookie('token', {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-        });
+        clearAuthCookie(res);
         return res.status(200).json({ message: 'Logout successful' });
     } catch (error) {
         console.error('Shop Owner logout failed:', error);

@@ -3,6 +3,7 @@ const CustomerService = require('../services/CustomerService');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const blackListTokenModel = require('../models/blackListTokenModel');
+const { setAuthCookie, clearAuthCookie } = require('../Middlewares/authSecurity');
 
 const validateLocationPayload = (latitude, longitude) => {
     const lat = Number(latitude);
@@ -61,7 +62,8 @@ module.exports.registerCustomer = async (req, res, next) => {
         });
 
         const token = createCustomerToken(customer);
-        return res.status(201).json({ token, customer });
+        setAuthCookie(res, token);
+        return res.status(201).json({ customer });
     } catch (error) {
         return next(error);
     }
@@ -86,13 +88,9 @@ module.exports.loginCustomer = async (req, res, next) => {
         }
 
         const token = createCustomerToken(customer);
-        res.cookie('token', token, {
-            httpOnly: true,
-            sameSite: 'strict',
-            secure: process.env.NODE_ENV === 'production',
-        });
+        setAuthCookie(res, token);
 
-        return res.status(200).json({ token, customer });
+        return res.status(200).json({ customer });
     } catch (error) {
         return next(error);
     }
@@ -105,7 +103,7 @@ module.exports.getCustomerProfile = (req, res) => {
 module.exports.logoutCustomer = async (req, res, next) => {
     try {
         const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
-        res.clearCookie('token');
+        clearAuthCookie(res);
 
         if (token) {
             await blackListTokenModel.create({ token });

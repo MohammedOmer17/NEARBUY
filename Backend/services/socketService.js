@@ -6,6 +6,7 @@ const Captain = require("../models/CaptainModel");
 const Order = require("../models/Order");
 const Shop = require("../models/ShopModel");
 const { validateCoordinates } = require("./googleMapsService");
+const { allowedOrigins } = require("../Middlewares/authSecurity");
 
 const getRoomName = (orderId) => `order_${orderId}`;
 
@@ -186,9 +187,13 @@ const emitTrackingError = (socket, message, statusCode = 400) => {
 const initializeSocketService = (server) => {
   const socketIo = require("socket.io")(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:5173",
+      origin: allowedOrigins,
       methods: ["GET", "POST"],
       credentials: true,
+    },
+    allowRequest: (request, callback) => {
+      const origin = request.headers.origin;
+      callback(null, Boolean(origin && allowedOrigins.includes(origin)));
     },
   });
 
