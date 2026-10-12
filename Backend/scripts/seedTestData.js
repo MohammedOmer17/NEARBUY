@@ -121,7 +121,27 @@ async function main() {
     throw new Error("Refusing to seed demo data when NODE_ENV is production.");
   }
 
-  await connectToDb();
+  const testDatabaseUri = process.env.SEED_TEST_DATA_MONGODB_URI;
+  if (!testDatabaseUri || !testDatabaseUri.trim()) {
+    throw new Error("SEED_TEST_DATA_MONGODB_URI must point to a dedicated test database.");
+  }
+
+  if (testDatabaseUri === process.env.MONGODB_URI) {
+    throw new Error("Refusing to seed because the test database URI matches MONGODB_URI.");
+  }
+
+  let databaseName;
+  try {
+    databaseName = new URL(testDatabaseUri).pathname.split("/").filter(Boolean)[0];
+  } catch {
+    throw new Error("SEED_TEST_DATA_MONGODB_URI must be a valid MongoDB connection string.");
+  }
+
+  if (!databaseName || !/(?:^|[-_])test(?:$|[-_])/i.test(databaseName)) {
+    throw new Error("Refusing to seed unless the database name includes a test segment.");
+  }
+
+  await connectToDb(testDatabaseUri);
 
   try {
     const passwordHash = await bcrypt.hash(demoPassword, 12);

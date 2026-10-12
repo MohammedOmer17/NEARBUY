@@ -822,14 +822,18 @@ npm install
 node server.js
 ```
 
-To create three repeatable demo shop-owner accounts and sample products in the
-MongoDB database configured by `MONGODB_URI`, run this from `Backend/`:
+To create three repeatable demo shop-owner accounts and sample products in a
+dedicated test database, set `SEED_TEST_DATA_MONGODB_URI` to a valid MongoDB
+connection string whose database name includes a `test` segment (for example,
+`nearbuy_test`) and differs from `MONGODB_URI`, then run this from `Backend/`:
 
 ```bash
 npm run seed:test-data
 ```
 
-The command refuses to run when `NODE_ENV=production`. Demo logins use
+The command refuses to run when `NODE_ENV=production`, when the dedicated test
+database URI is missing or invalid, when it matches `MONGODB_URI`, or when the
+target database name does not include a `test` segment. Demo logins use
 `asha.owner@nearbuy.test`, `ravi.owner@nearbuy.test`, and
 `meera.owner@nearbuy.test`, all with password `NearBuyDemo!2026`. Running the
 seed again resets those demo accounts' passwords and adds only products that

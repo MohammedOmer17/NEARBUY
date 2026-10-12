@@ -8,7 +8,7 @@ const {
   getShopOrderById,
   acceptOrder,
   updateShopOrderStatus,
-} = require("../controllers/orderController");
+} = require("../Controllers/orderController");
 const {
   getCustomerShopPayment,
   markOrderAsPaid,

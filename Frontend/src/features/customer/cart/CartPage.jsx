@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingBasket, Trash2 } from 'lucide-react'
 import { useCart } from '../../../context/CartContext'
 import { ROUTES } from '../../../config/routes'
-import { formatCurrency } from '../../../utils/format'
+import { formatCurrency, formatItemQuantity } from '../../../utils/format'
 import PageHeader from '../../../components/shared/PageHeader'
 import ProductImage from '../../../components/shared/ProductImage'
 import QuantityStepper from '../../../components/ui/QuantityStepper'
@@ -37,7 +37,7 @@ export default function CartPage() {
               <ProductImage src={i.image} alt="" className="h-16 w-16 shrink-0 rounded-xl bg-brand-50/60 p-1" />
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-sm font-semibold leading-5">{i.name}</p>
-                <p className="text-xs text-mute">{i.unit}</p>
+                <p className="text-xs text-mute">{formatItemQuantity(i.quantity, i.unit)}</p>
                 <p className="mt-1 font-bold">{formatCurrency(i.price * i.quantity)}</p>
               </div>
               <div className="flex flex-col items-end gap-2">

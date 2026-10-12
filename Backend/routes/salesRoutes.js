@@ -4,7 +4,7 @@ const {
   getSalesStatistics,
   getSalesTrends,
   getTopSellingProducts,
-} = require("../controllers/salesController");
+} = require("../Controllers/salesController");
 const { authShopOwner } = require("../Middlewares/authMiddleware");
 
 const router = express.Router();

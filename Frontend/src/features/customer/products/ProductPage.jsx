@@ -5,7 +5,7 @@ import { useAsync } from '../../../hooks/useAsync'
 import { useCart } from '../../../context/CartContext'
 import { productApi } from '../../../services/api'
 import { ROUTES } from '../../../config/routes'
-import { formatCurrency } from '../../../utils/format'
+import { formatCurrency, normalizeUnitLabel } from '../../../utils/format'
 import PageHeader from '../../../components/shared/PageHeader'
 import ProductImage from '../../../components/shared/ProductImage'
 import QuantityStepper from '../../../components/ui/QuantityStepper'
@@ -41,7 +41,7 @@ export default function ProductPage() {
         <div className="mt-5">
           {product.brand && <p className="text-sm font-semibold text-brand-600">{product.brand}</p>}
           <h2 className="text-2xl font-bold leading-8">{product.name}</h2>
-          {product.unit && <p className="mt-1 text-sm text-mute">{product.unit}</p>}
+          {product.unit && <p className="mt-1 text-sm text-mute">{normalizeUnitLabel(product.unit)}</p>}
           <p className="mt-3 text-3xl font-extrabold">{formatCurrency(product.price)}</p>
         </div>
         {product.shopId && (

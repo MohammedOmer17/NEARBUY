@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom'
-import { MapPin } from 'lucide-react'
+import { MapPin, Store, Truck } from 'lucide-react'
+import { ROUTES } from '../config/routes'
 import PhoneFrame from './PhoneFrame'
 
 export default function AuthLayout() {
@@ -15,6 +16,17 @@ export default function AuthLayout() {
       </div>
       <main className="-mt-6 flex-1 rounded-t-3xl bg-white px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-7">
         <Outlet />
+        <div className="mt-6 border-t border-line pt-4">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-mute">Continue as</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <a href={ROUTES.ownerLogin} className="flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm font-semibold text-ink transition hover:border-brand-200 hover:bg-brand-50/50">
+              <Store className="h-4 w-4" /> Shop Owner
+            </a>
+            <a href={ROUTES.captainLogin} className="flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-3 py-2.5 text-sm font-semibold text-ink transition hover:border-brand-200 hover:bg-brand-50/50">
+              <Truck className="h-4 w-4" /> Delivery Partner
+            </a>
+          </div>
+        </div>
       </main>
     </PhoneFrame>
   )

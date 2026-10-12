@@ -7,7 +7,7 @@ import { usePickupSharing } from '../../../hooks/usePickupSharing'
 import { orderApi, shopApi } from '../../../services/api'
 import { getErrorMessage } from '../../../services/apiClient'
 import { ROUTES } from '../../../config/routes'
-import { formatCurrency, formatDateTime, qrSrc } from '../../../utils/format'
+import { formatCurrency, formatDateTime, formatItemQuantity, qrSrc } from '../../../utils/format'
 import { PAYMENT_METHOD_LABEL, TERMINAL } from '../../../utils/orderMeta'
 import PageHeader from '../../../components/shared/PageHeader'
 import OrderTimeline from '../../../components/shared/OrderTimeline'
@@ -138,7 +138,7 @@ export default function OrderDetailPage() {
         <section className="rounded-2xl bg-white p-4 shadow-card">
           <h2 className="mb-2 font-bold">Items</h2>
           <ul className="space-y-1.5 text-sm">
-            {order.items.map((i, idx) => <li key={idx} className="flex justify-between gap-3"><span className="truncate">{i.quantity} x {i.name}</span><span className="font-semibold">{formatCurrency(i.price * i.quantity)}</span></li>)}
+            {order.items.map((i, idx) => <li key={idx} className="flex justify-between gap-3"><span className="truncate">{formatItemQuantity(i.quantity, i.unit, i.name)}</span><span className="font-semibold">{formatCurrency(i.price * i.quantity)}</span></li>)}
           </ul>
           <div className="mt-3 flex justify-between border-t border-line pt-3"><span className="font-bold">Total</span><span className="font-extrabold">{formatCurrency(order.totalAmount)}</span></div>
           <div className="mt-3 flex items-center justify-between text-sm">

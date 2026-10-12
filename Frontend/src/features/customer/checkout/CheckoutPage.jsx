@@ -6,7 +6,7 @@ import { useLocation } from '../../../context/LocationContext'
 import { orderApi } from '../../../services/api'
 import { getErrorMessage } from '../../../services/apiClient'
 import { ROUTES } from '../../../config/routes'
-import { formatCurrency } from '../../../utils/format'
+import { formatCurrency, formatItemQuantity } from '../../../utils/format'
 import PageHeader from '../../../components/shared/PageHeader'
 import Button from '../../../components/ui/Button'
 import Skeleton from '../../../components/ui/Skeleton'
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
             <span className="text-sm text-mute">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
           </div>
           <ul className="mt-2 space-y-1 text-sm text-mute">
-            {cart.items.map((i) => <li key={i.productId} className="flex justify-between gap-3"><span className="truncate">{i.quantity} x {i.name}</span><span>{formatCurrency(i.price * i.quantity)}</span></li>)}
+            {cart.items.map((i) => <li key={i.productId} className="flex justify-between gap-3"><span className="truncate">{formatItemQuantity(i.quantity, i.unit, i.name)}</span><span>{formatCurrency(i.price * i.quantity)}</span></li>)}
           </ul>
         </section>
 

@@ -7,7 +7,7 @@ const {
   updateProduct,
   deleteProduct,
   updateProductStock,
-} = require("../controllers/shopProductController");
+} = require("../Controllers/shopProductController");
 const { authShopOwner, authCustomer } = require("../Middlewares/authMiddleware");
 
 const router = express.Router();

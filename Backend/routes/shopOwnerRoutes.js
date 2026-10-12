@@ -4,7 +4,7 @@ const {
     loginShopOwner,
     logoutShopOwner,
     getShopOwnerProfile,
-} = require('../controllers/shopOwnerController');
+} = require('../Controllers/shopOwnerController');
 const {
     getShopOwnerPayment,
     updateShopOwnerPayment,
