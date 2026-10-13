@@ -51,7 +51,7 @@ export default function HomePage() {
   const q = query.trim().toLowerCase()
   const visibleShops = q ? allShops.filter((s) => matches(q, s.name, s.address)) : allShops
   const visibleProducts = dedupedProducts.filter((p) =>
-    (!category || p.category === category) && (!q || matches(q, p.name, p.brand, p.category)))
+    (!category || p.category === category) && (!q || matches(q, p.name, p.brand, p.category, p.unit, p.packSize, p.variant)))
 
   const loading = products.loading
   const noResults = !loading && q && !visibleShops.length && !visibleProducts.length
@@ -116,8 +116,8 @@ export default function HomePage() {
                 <CategoryChips categories={categories} value={category} onChange={setCategory} />
                 <div className="mt-3">
                   {loading ? <ProductGridSkeleton /> : visibleProducts.length ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      {visibleProducts.map((p) => <ProductCard key={p.key || p.id} product={p} showShop showCompare />)}
+                    <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3">
+                      {visibleProducts.map((p) => <ProductCard key={p.key || p.id} product={p} showCompare />)}
                     </div>
                   ) : (
                     <EmptyState title="No products in this category" />

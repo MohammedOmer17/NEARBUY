@@ -27,20 +27,20 @@ export default function CartPage() {
   }
 
   return (
-    <div className="pb-28">
+    <div className="pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <PageHeader title="Your cart" right={<button onClick={clear} className="mr-1 flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold text-danger active:bg-danger-50"><Trash2 className="h-4 w-4" />Clear</button>} />
       <div className="space-y-4 p-4">
         {cart.shopName && <p className="text-sm text-mute">Ordering from <span className="font-bold text-ink">{cart.shopName}</span></p>}
         <ul className="space-y-3">
           {cart.items.map((i) => (
-            <li key={i.productId} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-card">
-              <ProductImage src={i.image} alt="" className="h-16 w-16 shrink-0 rounded-xl bg-brand-50/60 p-1" />
+            <li key={i.productId} className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-white p-3 shadow-card sm:gap-3">
+              <ProductImage src={i.image} alt="" className="h-14 w-14 shrink-0 rounded-xl bg-brand-50/60 p-1 sm:h-16 sm:w-16" />
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-sm font-semibold leading-5">{i.name}</p>
                 <p className="text-xs text-mute">{formatItemQuantity(i.quantity, i.unit)}</p>
-                <p className="mt-1 font-bold">{formatCurrency(i.price * i.quantity)}</p>
+                <p className="mt-1 break-words font-bold">{formatCurrency(i.price * i.quantity)}</p>
               </div>
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex shrink-0 flex-col items-end gap-2">
                 <QuantityStepper value={i.quantity} onChange={(n) => setQty(i.productId, n)} />
                 <button onClick={() => remove(i.productId)} aria-label={`Remove ${i.name}`} className="text-xs font-semibold text-mute">Remove</button>
               </div>

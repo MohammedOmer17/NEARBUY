@@ -20,7 +20,7 @@ function Choice({ selected, onSelect, icon: Icon, title, text }) {
     <button type="button" onClick={onSelect} role="radio" aria-checked={selected}
       className={`flex w-full items-center gap-3 rounded-2xl border-2 bg-white p-3.5 text-left transition ${selected ? 'border-brand-600 bg-brand-50/50' : 'border-transparent shadow-card'}`}>
       <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-600'}`}><Icon className="h-5 w-5" /></span>
-      <span className="min-w-0 flex-1"><span className="block font-bold">{title}</span><span className="block text-xs text-mute">{text}</span></span>
+      <span className="min-w-0 flex-1"><span className="block break-words font-bold">{title}</span><span className="block text-xs text-mute">{text}</span></span>
       <span className={`grid h-5 w-5 place-items-center rounded-full border-2 ${selected ? 'border-brand-600' : 'border-line'}`}>{selected && <span className="h-2.5 w-2.5 rounded-full bg-brand-600" />}</span>
     </button>
   )
@@ -77,7 +77,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="pb-32">
+    <div className="pb-[calc(7rem+env(safe-area-inset-bottom))]">
       <PageHeader title="Checkout" fallback={ROUTES.cart} />
       <div className="space-y-5 p-4">
         <section className="rounded-2xl bg-white p-4 shadow-card">
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
             <span className="text-sm text-mute">{itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
           </div>
           <ul className="mt-2 space-y-1 text-sm text-mute">
-            {cart.items.map((i) => <li key={i.productId} className="flex justify-between gap-3"><span className="truncate">{formatItemQuantity(i.quantity, i.unit, i.name)}</span><span>{formatCurrency(i.price * i.quantity)}</span></li>)}
+            {cart.items.map((i) => <li key={i.productId} className="flex min-w-0 justify-between gap-3"><span className="min-w-0 break-words">{formatItemQuantity(i.quantity, i.unit, i.name)}</span><span className="shrink-0">{formatCurrency(i.price * i.quantity)}</span></li>)}
           </ul>
         </section>
 

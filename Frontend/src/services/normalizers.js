@@ -21,49 +21,51 @@ export function normalizeProduct(p) {
     image: p.image || '',
     price: Number(p.price) || 0,
     unit: p.unit || '',
+    packSize: p.packSize || '',
+    variant: p.variant || '',
+    barcode: p.barcode || p.gtin || '',
     // Only availability is exposed. Stock quantity is deliberately dropped.
     available: p.isAvailable !== false,
   }
 }
 
+const identityPart = (value) => String(value || '').normalize('NFKC').trim().toLowerCase().replace(/\s+/g, ' ')
+
 export function getProductIdentityKey(product = {}) {
-  const parts = [
-    String(product.name || '').trim().toLowerCase(),
-    String(product.brand || '').trim().toLowerCase(),
-    String(product.category || '').trim().toLowerCase(),
-    String(product.unit || '').trim().toLowerCase(),
-    String(product.variant || product.packSize || '').trim().toLowerCase(),
-  ]
-  return parts.filter(Boolean).join('|')
+  const barcode = identityPart(product.barcode || product.gtin)
+  if (barcode) return `barcode:${barcode}`
+
+  const name = identityPart(product.name)
+  const brand = identityPart(product.brand)
+  const category = identityPart(product.category)
+  const unit = identityPart(product.unit)
+  const packSize = identityPart(product.packSize)
+  const variant = identityPart(product.variant)
+
+  // The current backend has no canonical product ID. Avoid merging by name alone.
+  if (!name || !unit || (!brand && !category && !packSize && !variant)) return ''
+  return [name, brand, brand ? '' : category, unit, packSize, variant].join('|')
 }
 
 export function groupProductsByIdentity(products = []) {
   const groups = new Map()
 
-  for (const product of products) {
+  for (const [index, product] of products.entries()) {
     const key = getProductIdentityKey(product)
-    if (!key) {
-      const fallbackKey = `unmatched-${product.id || Math.random().toString(36).slice(2)}`
-      if (!groups.has(fallbackKey)) groups.set(fallbackKey, { key: fallbackKey, offers: [] })
-      groups.get(fallbackKey).offers.push(product)
-      continue
-    }
-
-    if (!groups.has(key)) groups.set(key, { key, offers: [] })
-    groups.get(key).offers.push(product)
+    const groupKey = key || `unmatched:${product.id || index}`
+    if (!groups.has(groupKey)) groups.set(groupKey, { key: groupKey, offers: [] })
+    groups.get(groupKey).offers.push(product)
   }
 
   return [...groups.values()].map(({ key, offers }) => {
     const ordered = [...offers].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))
     const canonical = ordered[0] || offers[0]
-    const minPrice = Number(canonical?.price) || 0
 
     return {
       ...canonical,
       key,
       offers: ordered,
       offerCount: ordered.length,
-      minimumPrice: minPrice,
     }
   })
 }

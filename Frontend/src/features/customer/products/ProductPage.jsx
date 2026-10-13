@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MapPin, Store } from 'lucide-react'
+import { MapPin, PackageSearch, Store } from 'lucide-react'
 import { useAsync } from '../../../hooks/useAsync'
-import { useCart } from '../../../context/CartContext'
 import { useLocation } from '../../../context/LocationContext'
 import { productApi, shopApi } from '../../../services/api'
 import { groupProductsByIdentity } from '../../../services/normalizers'
@@ -10,127 +9,144 @@ import { ROUTES } from '../../../config/routes'
 import { formatCurrency, normalizeUnitLabel } from '../../../utils/format'
 import PageHeader from '../../../components/shared/PageHeader'
 import ProductImage from '../../../components/shared/ProductImage'
-import QuantityStepper from '../../../components/ui/QuantityStepper'
 import Skeleton from '../../../components/ui/Skeleton'
 import ErrorState from '../../../components/ui/ErrorState'
-import Button from '../../../components/ui/Button'
+import EmptyState from '../../../components/ui/EmptyState'
 
 export default function ProductPage() {
   const { productId } = useParams()
   const { location } = useLocation()
   const { data: allProducts, loading, error, reload } = useAsync(() => productApi.all(), [])
-  const { data: nearbyShops } = useAsync(() => shopApi.assess(location.latitude, location.longitude), [location?.latitude, location?.longitude], { enabled: !!location })
-  const { quantityOf, add, setQty, isBusy } = useCart()
-  const [qty, setLocalQty] = useState(1)
+  const { data: nearbyShops } = useAsync(
+    () => shopApi.assess(location.latitude, location.longitude),
+    [location?.latitude, location?.longitude],
+    { enabled: !!location },
+  )
 
   const groupedProducts = useMemo(() => groupProductsByIdentity(allProducts || []), [allProducts])
-  const productGroup = useMemo(() => {
-    if (!groupedProducts.length) return null
-    return groupedProducts.find((group) => String(group.id) === String(productId))
-      || groupedProducts.find((group) => group.offers.some((offer) => String(offer.id) === String(productId)))
-      || null
-  }, [groupedProducts, productId])
+  const productGroup = useMemo(() => groupedProducts.find((group) =>
+    String(group.id) === String(productId)
+      || group.offers.some((offer) => String(offer.id) === String(productId))),
+  [groupedProducts, productId])
+  const shopLookup = useMemo(
+    () => new Map((nearbyShops || []).map((shop) => [String(shop.id), shop])),
+    [nearbyShops],
+  )
 
-  const allOffers = productGroup?.offers || []
-  const [selectedOfferId, setSelectedOfferId] = useState(productId)
-
-  useEffect(() => {
-    if (!allOffers.length) return
-    const nextSelection = allOffers.find((offer) => String(offer.id) === String(productId)) || allOffers[0]
-    setSelectedOfferId(nextSelection.id)
-  }, [allOffers, productId])
-
-  const selectedOffer = allOffers.find((offer) => String(offer.id) === String(selectedOfferId)) || allOffers[0] || null
-  const shopLookup = useMemo(() => new Map((nearbyShops || []).map((shop) => [String(shop.id), shop])), [nearbyShops])
-  const selectedShopInfo = selectedOffer ? shopLookup.get(String(selectedOffer.shopId)) || { id: selectedOffer.shopId, name: selectedOffer.shopName || 'Local shop', address: '', distanceKm: null } : null
-
-  if (loading && !productGroup) {
+  if (loading) {
     return (
-      <div><PageHeader title="" />
-        <Skeleton className="m-4 aspect-square" /><div className="space-y-3 px-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-1/3" /><Skeleton className="h-20" /></div>
+      <div>
+        <PageHeader title="" />
+        <Skeleton className="m-4 aspect-square" />
+        <div className="space-y-3 px-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-1/3" /><Skeleton className="h-20" /></div>
       </div>
     )
   }
-  if (error || !productGroup || !selectedOffer) return <div><PageHeader title="Product" /><ErrorState error={error} onRetry={reload} title="Could not load this product" /></div>
+  if (error) return <div><PageHeader title="Product" /><ErrorState error={error} onRetry={reload} title="Could not load this product" /></div>
+  if (!productGroup) {
+    return (
+      <div>
+        <PageHeader title="Product" />
+        <EmptyState icon={PackageSearch} title="Product is no longer available" text="It may have been removed or sold out. Return to the home page to browse other products." action={<Link to={ROUTES.home} className="rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white">Browse products</Link>} />
+      </div>
+    )
+  }
 
-  const inCart = quantityOf(selectedOffer.id)
-  const busy = isBusy(selectedOffer.id)
+  const product = productGroup
+  const offers = productGroup.offers
 
   return (
-    <div className="pb-32">
-      <PageHeader title={selectedOffer.name} />
-      <div className="px-4 pt-4">
-        <div className="aspect-square overflow-hidden rounded-3xl bg-white shadow-card">
-          <ProductImage src={selectedOffer.image} alt={selectedOffer.name} className="h-full w-full p-6" />
+    <div>
+      <PageHeader title={product.name} />
+      <div className="space-y-5 px-4 pb-8 pt-4">
+        <div className="aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-card">
+          <ProductImage src={product.image} alt={product.name} className="h-full w-full p-6" />
         </div>
-        <div className="mt-5">
-          {selectedOffer.brand && <p className="text-sm font-semibold text-brand-600">{selectedOffer.brand}</p>}
-          <h2 className="text-2xl font-bold leading-8">{selectedOffer.name}</h2>
-          {selectedOffer.unit && <p className="mt-1 text-sm text-mute">{normalizeUnitLabel(selectedOffer.unit)}</p>}
-          <p className="mt-3 text-3xl font-extrabold">{formatCurrency(selectedOffer.price)}</p>
-        </div>
-        {selectedOffer.shopId && (
-          <Link to={ROUTES.shop(selectedOffer.shopId)} state={{ shop: { id: selectedOffer.shopId, name: selectedShopInfo?.name || selectedOffer.shopName || 'Shop', address: selectedShopInfo?.address || '', distanceKm: selectedShopInfo?.distanceKm ?? null } }} className="mt-5 flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-card">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-50 text-brand-600"><Store className="h-5 w-5" /></span>
-            <span className="min-w-0 flex-1"><span className="block text-xs text-mute">Sold by</span><span className="block truncate font-bold">{selectedShopInfo?.name || selectedOffer.shopName || 'View shop'}</span></span>
-          </Link>
-        )}
-        {selectedOffer.description && (
-          <section className="mt-5">
-            <h3 className="mb-1.5 font-bold">About this product</h3>
-            <p className="text-[15px] leading-6 text-mute">{selectedOffer.description}</p>
-          </section>
-        )}
-        {selectedOffer.category && <p className="mt-4 text-sm text-mute">Category: <span className="font-semibold text-ink">{selectedOffer.category}</span></p>}
 
-        <section className="mt-6">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h3 className="font-bold">Available at nearby shops</h3>
-            <span className="text-xs font-semibold text-brand-700">{allOffers.length} offer{allOffers.length === 1 ? '' : 's'}</span>
+        <section className="min-w-0">
+          {product.brand && <p className="text-sm font-semibold text-brand-600">{product.brand}</p>}
+          <h2 className="break-words text-2xl font-bold leading-8">{product.name}</h2>
+          {product.variant && <p className="mt-1 text-sm text-mute">{product.variant}</p>}
+          {(product.packSize || product.unit) && (
+            <p className={`${product.variant ? 'mt-0.5' : 'mt-1'} text-sm text-mute`}>{product.packSize || normalizeUnitLabel(product.unit)}</p>
+          )}
+          {product.description && (
+            <div className="mt-4">
+              <h3 className="mb-1.5 font-bold">About this product</h3>
+              <p className="break-words text-[15px] leading-6 text-mute">{product.description}</p>
+            </div>
+          )}
+          {product.category && <p className="mt-3 text-sm text-mute">Category: <span className="font-semibold text-ink">{product.category}</span></p>}
+        </section>
+
+        <section aria-labelledby="compare-prices-heading">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 id="compare-prices-heading" className="font-bold">Compare prices</h3>
+            <span className="text-xs font-semibold text-brand-700">{offers.length} offer{offers.length === 1 ? '' : 's'}</span>
           </div>
-          <div className="space-y-3">
-            {allOffers.map((offer) => {
-              const shopInfo = shopLookup.get(String(offer.shopId)) || { id: offer.shopId, name: offer.shopName || 'Local shop', address: '', distanceKm: null }
-              const isSelected = String(offer.id) === String(selectedOffer.id)
-              return (
-                <div key={offer.id} className={`rounded-2xl border p-3.5 ${isSelected ? 'border-brand-500 bg-brand-50' : 'border-line bg-white'}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-bold">{shopInfo.name || offer.shopName || 'Local shop'}</p>
-                      {shopInfo.distanceKm != null && (
-                        <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700"><MapPin className="h-3 w-3" />{shopInfo.distanceKm.toFixed(1)} km away</p>
+          {!offers.length ? (
+            <EmptyState icon={Store} title="No offers available" text="Shops do not currently have this product in stock." />
+          ) : (
+            <ul className="space-y-3">
+              {offers.map((offer) => {
+                const shopInfo = shopLookup.get(String(offer.shopId))
+                const shopName = shopInfo?.name || offer.shopName || 'Local shop'
+                const selectShopState = {
+                  shop: {
+                    id: offer.shopId,
+                    name: shopName,
+                    address: shopInfo?.address || '',
+                    distanceKm: shopInfo?.distanceKm ?? null,
+                  },
+                  selectedOffer: {
+                    productId: offer.id,
+                    price: offer.price,
+                    unit: offer.unit,
+                    packSize: offer.packSize,
+                    variant: offer.variant,
+                    available: offer.available,
+                  },
+                }
+
+                return (
+                  <li key={offer.id} className="min-w-0 rounded-2xl border border-line bg-white p-3.5 shadow-card">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="break-words font-bold">{shopName}</p>
+                        {shopInfo?.distanceKm != null && (
+                          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
+                            <MapPin className="h-3 w-3 shrink-0" />{shopInfo.distanceKm.toFixed(1)} km away
+                          </p>
+                        )}
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-lg font-extrabold tabular-nums">{formatCurrency(offer.price)}</p>
+                        {(offer.packSize || offer.unit) && (
+                          <p className="text-xs text-mute">{offer.packSize || normalizeUnitLabel(offer.unit)}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      {offer.available ? (
+                        <Link
+                          to={ROUTES.shop(offer.shopId)}
+                          state={selectShopState}
+                          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-center text-sm font-semibold text-white active:bg-brand-700"
+                        >
+                          <Store className="h-4 w-4 shrink-0" /> Select shop
+                        </Link>
+                      ) : (
+                        <button type="button" disabled className="min-h-11 w-full rounded-full bg-canvas px-4 py-2 text-sm font-semibold text-mute">
+                          Currently unavailable
+                        </button>
                       )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-extrabold">{formatCurrency(offer.price)}</p>
-                      <p className="text-[11px] text-mute">{offer.available ? 'Available' : 'Unavailable'}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <Button full variant={isSelected ? 'primary' : 'ghost'} onClick={() => setSelectedOfferId(offer.id)}>{isSelected ? 'Selected' : 'Select shop'}</Button>
-                    <Link to={ROUTES.shop(offer.shopId)} state={{ shop: { id: offer.shopId, name: shopInfo.name || offer.shopName || 'Shop', address: shopInfo.address || '', distanceKm: shopInfo.distanceKm ?? null } }} className="flex h-11 flex-1 items-center justify-center rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink active:bg-canvas">Browse catalogue</Link>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </section>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-line bg-white px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
-        {!selectedOffer.available ? (
-          <Button full disabled>Currently unavailable</Button>
-        ) : inCart > 0 ? (
-          <div className="flex items-center gap-3">
-            <QuantityStepper large value={inCart} disabled={busy} onChange={(n) => setQty(selectedOffer.id, n)} />
-            <Link to={ROUTES.cart} className="flex h-12 flex-1 items-center justify-center rounded-full bg-brand-600 font-semibold text-white active:bg-brand-700">View cart</Link>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <QuantityStepper large value={qty} min={1} onChange={(n) => setLocalQty(Math.max(1, n))} />
-            <Button full loading={busy} onClick={() => add(selectedOffer, qty)}>Add to cart</Button>
-          </div>
-        )}
       </div>
     </div>
   )

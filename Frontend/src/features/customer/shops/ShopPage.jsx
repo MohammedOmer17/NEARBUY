@@ -26,7 +26,7 @@ export default function ShopPage() {
   const categories = useMemo(() => [...new Set((products || []).map((p) => p.category).filter(Boolean))], [products])
   const q = query.trim().toLowerCase()
   const visible = (products || []).filter((p) =>
-    (!category || p.category === category) && (!q || [p.name, p.brand, p.category].some((f) => f?.toLowerCase().includes(q))))
+    (!category || p.category === category) && (!q || [p.name, p.brand, p.category, p.unit, p.packSize, p.variant].some((f) => f?.toLowerCase().includes(q))))
 
   return (
     <div>
@@ -47,7 +47,7 @@ export default function ShopPage() {
         <div className="mt-4">
           {loading ? <ProductGridSkeleton /> : error ? <ErrorState error={error} onRetry={reload} title="Could not load this shop" />
             : visible.length ? (
-              <div className="grid grid-cols-2 gap-3">{visible.map((p) => <ProductCard key={p.id} product={p} />)}</div>
+              <div className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3">{visible.map((p) => <ProductCard key={p.id} product={p} />)}</div>
             ) : (
               <EmptyState icon={PackageSearch} title={q || category ? 'No matching products' : 'No products yet'}
                 text={q || category ? 'Try a different search or category.' : 'This shop has not listed any products.'} />

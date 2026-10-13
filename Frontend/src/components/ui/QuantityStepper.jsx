@@ -1,8 +1,8 @@
 import { Minus, Plus } from 'lucide-react'
 
 export default function QuantityStepper({ value, onChange, min = 0, max = 99, large = false, disabled = false }) {
-  const h = large ? 'h-12' : 'h-9'
-  const w = large ? 'w-12' : 'w-9'
+  const h = large ? 'h-12' : 'h-11'
+  const w = large ? 'w-12' : 'w-11'
   return (
     <div className={`inline-flex ${h} items-center rounded-full bg-accent-500 text-white`} role="group" aria-label="Quantity">
       <button type="button" disabled={disabled} onClick={() => onChange(value - 1)} aria-label="Decrease quantity"
