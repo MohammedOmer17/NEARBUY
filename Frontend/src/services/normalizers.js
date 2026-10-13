@@ -26,6 +26,48 @@ export function normalizeProduct(p) {
   }
 }
 
+export function getProductIdentityKey(product = {}) {
+  const parts = [
+    String(product.name || '').trim().toLowerCase(),
+    String(product.brand || '').trim().toLowerCase(),
+    String(product.category || '').trim().toLowerCase(),
+    String(product.unit || '').trim().toLowerCase(),
+    String(product.variant || product.packSize || '').trim().toLowerCase(),
+  ]
+  return parts.filter(Boolean).join('|')
+}
+
+export function groupProductsByIdentity(products = []) {
+  const groups = new Map()
+
+  for (const product of products) {
+    const key = getProductIdentityKey(product)
+    if (!key) {
+      const fallbackKey = `unmatched-${product.id || Math.random().toString(36).slice(2)}`
+      if (!groups.has(fallbackKey)) groups.set(fallbackKey, { key: fallbackKey, offers: [] })
+      groups.get(fallbackKey).offers.push(product)
+      continue
+    }
+
+    if (!groups.has(key)) groups.set(key, { key, offers: [] })
+    groups.get(key).offers.push(product)
+  }
+
+  return [...groups.values()].map(({ key, offers }) => {
+    const ordered = [...offers].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))
+    const canonical = ordered[0] || offers[0]
+    const minPrice = Number(canonical?.price) || 0
+
+    return {
+      ...canonical,
+      key,
+      offers: ordered,
+      offerCount: ordered.length,
+      minimumPrice: minPrice,
+    }
+  })
+}
+
 export function normalizeShop(item) {
   const s = asObj(item?.shop) || item || {}
   const km = item?.distanceKm ?? item?.distanceInKm ?? s.distanceKm

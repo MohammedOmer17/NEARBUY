@@ -6,6 +6,7 @@ import { useCart } from '../../../context/CartContext'
 import { useNotifications } from '../../../context/NotificationContext'
 import { useAsync } from '../../../hooks/useAsync'
 import { productApi, shopApi } from '../../../services/api'
+import { groupProductsByIdentity } from '../../../services/normalizers'
 import { ROUTES } from '../../../config/routes'
 import { formatDateTime } from '../../../utils/format'
 import SearchBar from '../../../components/shared/SearchBar'
@@ -44,11 +45,12 @@ export default function HomePage() {
     return shopsFromProducts(products.data || [])
   }, [shops.data, products.data])
 
-  const categories = useMemo(() => [...new Set((products.data || []).map((p) => p.category).filter(Boolean))], [products.data])
+  const dedupedProducts = useMemo(() => groupProductsByIdentity(products.data || []), [products.data])
+  const categories = useMemo(() => [...new Set(dedupedProducts.map((p) => p.category).filter(Boolean))], [dedupedProducts])
 
   const q = query.trim().toLowerCase()
   const visibleShops = q ? allShops.filter((s) => matches(q, s.name, s.address)) : allShops
-  const visibleProducts = (products.data || []).filter((p) =>
+  const visibleProducts = dedupedProducts.filter((p) =>
     (!category || p.category === category) && (!q || matches(q, p.name, p.brand, p.category)))
 
   const loading = products.loading
@@ -115,7 +117,7 @@ export default function HomePage() {
                 <div className="mt-3">
                   {loading ? <ProductGridSkeleton /> : visibleProducts.length ? (
                     <div className="grid grid-cols-2 gap-3">
-                      {visibleProducts.map((p) => <ProductCard key={p.id} product={p} showShop />)}
+                      {visibleProducts.map((p) => <ProductCard key={p.key || p.id} product={p} showShop showCompare />)}
                     </div>
                   ) : (
                     <EmptyState title="No products in this category" />
