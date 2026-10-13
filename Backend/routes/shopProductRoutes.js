@@ -4,6 +4,7 @@ const {
   getAvailableProducts,
   getShopProducts,
   getProductById,
+  getProductOffers,
   updateProduct,
   deleteProduct,
   updateProductStock,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.post("/shop-products", authShopOwner, createProduct);
 router.get("/shop-products", getAvailableProducts);
 router.get("/shop-products/shop/:shopId", getShopProducts);
+router.get("/shop-products/:productId/offers", getProductOffers);
 router.get("/shop-products/:productId", getProductById);
 router.put("/shop-products/:productId", authShopOwner, updateProduct);
 router.delete("/shop-products/:productId", authShopOwner, deleteProduct);

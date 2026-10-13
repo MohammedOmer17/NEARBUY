@@ -1,10 +1,7 @@
-import { useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { MapPin, PackageSearch, Store } from 'lucide-react'
+import { PackageSearch, Store } from 'lucide-react'
 import { useAsync } from '../../../hooks/useAsync'
-import { useLocation } from '../../../context/LocationContext'
-import { productApi, shopApi } from '../../../services/api'
-import { groupProductsByIdentity } from '../../../services/normalizers'
+import { productApi } from '../../../services/api'
 import { ROUTES } from '../../../config/routes'
 import { formatCurrency, normalizeUnitLabel } from '../../../utils/format'
 import PageHeader from '../../../components/shared/PageHeader'
@@ -15,23 +12,7 @@ import EmptyState from '../../../components/ui/EmptyState'
 
 export default function ProductPage() {
   const { productId } = useParams()
-  const { location } = useLocation()
-  const { data: allProducts, loading, error, reload } = useAsync(() => productApi.all(), [])
-  const { data: nearbyShops } = useAsync(
-    () => shopApi.assess(location.latitude, location.longitude),
-    [location?.latitude, location?.longitude],
-    { enabled: !!location },
-  )
-
-  const groupedProducts = useMemo(() => groupProductsByIdentity(allProducts || []), [allProducts])
-  const productGroup = useMemo(() => groupedProducts.find((group) =>
-    String(group.id) === String(productId)
-      || group.offers.some((offer) => String(offer.id) === String(productId))),
-  [groupedProducts, productId])
-  const shopLookup = useMemo(
-    () => new Map((nearbyShops || []).map((shop) => [String(shop.id), shop])),
-    [nearbyShops],
-  )
+  const { data, loading, error, reload } = useAsync(() => productApi.offers(productId), [productId])
 
   if (loading) {
     return (
@@ -43,7 +24,7 @@ export default function ProductPage() {
     )
   }
   if (error) return <div><PageHeader title="Product" /><ErrorState error={error} onRetry={reload} title="Could not load this product" /></div>
-  if (!productGroup) {
+  if (!data?.product) {
     return (
       <div>
         <PageHeader title="Product" />
@@ -52,8 +33,8 @@ export default function ProductPage() {
     )
   }
 
-  const product = productGroup
-  const offers = productGroup.offers
+  const product = data.product
+  const offers = data.offers.filter((offer) => offer.shopId && offer.available && Number.isFinite(offer.price) && offer.price >= 0)
 
   return (
     <div>
@@ -89,14 +70,11 @@ export default function ProductPage() {
           ) : (
             <ul className="space-y-3">
               {offers.map((offer) => {
-                const shopInfo = shopLookup.get(String(offer.shopId))
-                const shopName = shopInfo?.name || offer.shopName || 'Local shop'
+                const shopName = offer.shopName || 'Local shop'
                 const selectShopState = {
                   shop: {
                     id: offer.shopId,
                     name: shopName,
-                    address: shopInfo?.address || '',
-                    distanceKm: shopInfo?.distanceKm ?? null,
                   },
                   selectedOffer: {
                     productId: offer.id,
@@ -113,11 +91,6 @@ export default function ProductPage() {
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="break-words font-bold">{shopName}</p>
-                        {shopInfo?.distanceKm != null && (
-                          <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
-                            <MapPin className="h-3 w-3 shrink-0" />{shopInfo.distanceKm.toFixed(1)} km away
-                          </p>
-                        )}
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-lg font-extrabold tabular-nums">{formatCurrency(offer.price)}</p>

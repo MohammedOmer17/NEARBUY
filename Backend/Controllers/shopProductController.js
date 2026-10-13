@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Shop = require("../models/ShopModel");
 const ShopProduct = require("../models/ShopProduct");
+const { buildProductIdentityFilter } = require("../services/productIdentity");
 
 const requiredProductFields = ["name", "category", "price", "unit", "quantity"];
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -167,6 +168,39 @@ const getProductById = async (req, res) => {
   }
 };
 
+const getProductOffers = async (req, res) => {
+  const { productId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ message: "Invalid product ID" });
+  }
+
+  try {
+    const product = await ShopProduct.findById(productId)
+      .populate("shop", "shopName address contact status location");
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const identityFilter = buildProductIdentityFilter(product);
+    const activeShops = await Shop.find({ status: "active" }).distinct("_id");
+    const offers = await ShopProduct.find({
+      ...(identityFilter || { _id: product._id }),
+      shop: { $in: activeShops },
+      isAvailable: true,
+      quantity: { $gt: 0 },
+    })
+      .sort({ price: 1 })
+      .populate("shop", "shopName address contact status location");
+
+    return res.status(200).json({ product, offers });
+  } catch (error) {
+    console.error("Fetch product offers failed:", error);
+    return res.status(500).json({ message: "Unable to retrieve product offers" });
+  }
+};
+
 const updateProduct = async (req, res) => {
   const { productId } = req.params;
 
@@ -325,6 +359,7 @@ module.exports = {
   getShopProducts,
   getAvailableProducts,
   getProductById,
+  getProductOffers,
   updateProduct,
   deleteProduct,
   updateProductStock,

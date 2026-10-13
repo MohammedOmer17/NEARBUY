@@ -32,6 +32,10 @@ export const productApi = {
   all: () => apiClient.get('/shop-products').then((r) => list(r.data, 'products', 'data').map(normalizeProduct)),
   byShop: (shopId) => apiClient.get(`/shop-products/shop/${shopId}`).then((r) => list(r.data, 'products', 'data').map(normalizeProduct)),
   one: (id) => apiClient.get(`/shop-products/${id}`).then((r) => normalizeProduct(unwrap(r.data, 'product', 'data'))),
+  offers: (id) => apiClient.get(`/shop-products/${id}/offers`).then((r) => ({
+    product: normalizeProduct(r.data?.product),
+    offers: list(r.data, 'offers').map(normalizeProduct),
+  })),
 }
 
 export const cartApi = {

@@ -28,6 +28,7 @@ const demoOwners = [
       { name: "Basmati Rice", category: "Grains", brand: "Golden Grain", price: 110, unit: "kg", quantity: 35 },
       { name: "Sunflower Oil", category: "Cooking Oil", brand: "SunDrop", price: 155, unit: "ltr", quantity: 18 },
       { name: "Toned Milk", category: "Dairy", brand: "Daily Fresh", price: 30, unit: "ltr", quantity: 40 },
+      { name: "Bath Soap", category: "Personal Care", brand: "Fresh Day", price: 35, unit: "piece", quantity: 22 },
     ],
   },
   {
@@ -44,6 +45,7 @@ const demoOwners = [
       { name: "Brown Eggs", category: "Dairy", brand: "Farm Nest", price: 8, unit: "piece", quantity: 60 },
       { name: "Masala Noodles", category: "Snacks", brand: "Quick Bite", price: 18, unit: "packet", quantity: 45 },
       { name: "Green Tea", category: "Beverages", brand: "Leaf & Co", price: 95, unit: "packet", quantity: 12 },
+      { name: "Bath Soap", category: "Personal Care", brand: "Fresh Day", price: 40, unit: "piece", quantity: 18 },
     ],
   },
   {
